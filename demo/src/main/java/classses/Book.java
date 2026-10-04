@@ -1,38 +1,50 @@
 package classses;
+import java.util.List;
+
+import java.util.ArrayList;
 
 public class Book {
     private String title;
-    private Author authors[];
-    private Element element[];
+    private List<Author> authors = new ArrayList<>();
+    private List<Element> element = new ArrayList<>();
 
-    public Book(String title, Author[] authors, Element[] element) {
+    public Book(String title, List<Author> authors, List<Element> element) {
         this.title = title;
-        this.authors = authors;
-        this.element = element;
+        this.authors.addAll(authors);
+        this.element.addAll(element);
     }
+
+    public Book(String title) {
+        this.title = title;
+    }
+
+    public void addAuthor(Author author) {
+        authors.add(author);
+    }
+
 
     public String getTitle() {
         return title;
     }
 
-    public Author[] getAuthors() {
+    public List<Author> getAuthors() {
         return authors;
     }
 
-    public Element[] getElement() {
-        return element;
-    }
-
     public void print() {
-        System.out.println("Book Title: " + title);
+        System.out.println("Book Title: " + title + "\n");
         System.out.println("Authors:");
         for (Author author : authors) {
-            System.out.println("- " + author.getName());
+            author.print();
         }
-        System.out.println("Elements:");
+        System.out.println(" ");
         for (Element e : element) {
-            System.out.println("- " + e.print());
+            e.print();
         }
+    }
+
+    public void addContent(Element e) {
+        element.add(e);
     }
 
 }

@@ -1,13 +1,37 @@
 package classses;
 
-public class Image {
-    private String url;
+public class Image implements Element {
+    private String name;
 
-    public Image(String url) {
-        this.url = url;
+    public Image(String name) {
+        this.name = name;
     }
 
-    public String getUrl() {
-        return url;
+    public String getName() {
+        return name;
     }
+
+    @Override
+    public void print() {
+        System.out.println("Image with name: " + name);
+    }
+
+    @Override
+    public void add(Element element) {
+        
+    }
+
+    @Override
+    public void remove(Element element) {
+        // TO DO
+    }
+
+    @Override
+    public Element get(int index) {
+        // TO DO
+        return null;
+    }
+
+
+
 }

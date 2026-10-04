@@ -1,22 +1,13 @@
 package classses;
 
-public class Element {
+public interface Element {
     
-    public void print() {
-        //TO DO
-    }
+    public void print() ;
 
-    public void add(Element element) {
-        //TO DO
-    }
+    public void add(Element element);
 
-    public void remove(Element element) {
-        //TO DO
-    }
+    public void remove(Element element);
 
-    public Element get(int index){
-        //TO DO
-        return null;
-    }
+    public Element get(int index);
 
 }
