@@ -1,34 +1,34 @@
 package classses;
 
 public class Table implements Element {
-    private String something;
+    private String title;
 
-    public Table(String something) {
-        this.something = something;
+    public Table(String title) {
+        this.title = title;
     }
 
-    public String getSomething() {
-        return something;
+    public String getTitle() {
+        return title;
     }
 
     @Override
     public void print() {
-        System.out.println("Table name: " + something);
+        System.out.println("Table name: " + title);
     }
 
     @Override
     public void add(Element element) {
-        // TO DO
+        
     }
 
     @Override
     public void remove(Element element) {
-        // TO DO
+        
     }
 
     @Override
     public Element get(int index) {
-        // TO DO
+       
         return null;
     }
 }

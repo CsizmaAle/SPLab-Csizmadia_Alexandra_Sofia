@@ -23,12 +23,12 @@ public class Image implements Element {
 
     @Override
     public void remove(Element element) {
-        // TO DO
+        
     }
 
     @Override
     public Element get(int index) {
-        // TO DO
+        
         return null;
     }
 
