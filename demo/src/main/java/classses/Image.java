@@ -1,19 +1,28 @@
 package classses;
 
-public class Image implements Element {
-    private String name;
+import java.util.concurrent.TimeUnit;
 
-    public Image(String name) {
-        this.name = name;
+public class Image implements Element {
+    private String url;
+    private ImageContent content;
+
+    public Image(String url) {
+        this.url = url;
+        this.content = new ImageContent();
+        try {
+            TimeUnit.SECONDS.sleep(5);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
-    public String getName() {
-        return name;
+    public ImageContent content() {
+        return content;
     }
 
     @Override
     public void print() {
-        System.out.println("Image with name: " + name);
+        System.out.println("Image with name: " + url);
     }
 
     @Override
