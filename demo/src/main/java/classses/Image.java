@@ -1,8 +1,9 @@
 package classses;
 
+import java.awt.Dimension;
 import java.util.concurrent.TimeUnit;
 
-public class Image implements Element {
+public class Image implements Element, Picture {
     private String url;
     private ImageContent content;
 
@@ -16,6 +17,17 @@ public class Image implements Element {
         }
     }
 
+    @Override
+    public String url() {
+        return url;
+    }
+
+    @Override
+    public Dimension dim() {
+        return null;
+    }
+
+    @Override
     public ImageContent content() {
         return content;
     }

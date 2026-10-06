@@ -1,4 +1,4 @@
 package classses;
 
-public class ImageContent {
+public class ImageContent implements PictureContent {
 }
