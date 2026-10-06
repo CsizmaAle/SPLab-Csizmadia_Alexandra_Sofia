@@ -1,20 +1,21 @@
 package classses;
 
 import java.awt.Dimension;
-import java.util.concurrent.TimeUnit;
 
-public class Image implements Element, Picture {
+public class ImageProxy implements Element, Picture {
     private String url;
-    private ImageContent content;
+    private Dimension dim;
+    private Image realImg;
 
-    public Image(String url) {
+    public ImageProxy(String url) {
         this.url = url;
-        this.content = new ImageContent();
-        try {
-            TimeUnit.SECONDS.sleep(5);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+    }
+
+    private Image loadImage() {
+        if (realImg == null) {
+            realImg = new Image(url);
         }
+        return realImg;
     }
 
     @Override
@@ -24,17 +25,17 @@ public class Image implements Element, Picture {
 
     @Override
     public Dimension dim() {
-        return null;
+        return dim;
     }
 
     @Override
-    public ImageContent content() {
-        return content;
+    public PictureContent content() {
+        return loadImage().content();
     }
 
     @Override
     public void print() {
-        System.out.println("Image with name: " + url);
+        loadImage().print();
     }
 
     @Override
