@@ -18,17 +18,14 @@ public class Table implements Element {
 
     @Override
     public void add(Element element) {
-        
     }
 
     @Override
     public void remove(Element element) {
-        
     }
 
     @Override
     public Element get(int index) {
-       
         return null;
     }
 }

@@ -1,7 +1,7 @@
 package classses;
-import java.util.List;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Book {
     private String title;
@@ -22,7 +22,6 @@ public class Book {
         authors.add(author);
     }
 
-
     public String getTitle() {
         return title;
     }
@@ -37,7 +36,7 @@ public class Book {
         for (Author author : authors) {
             author.print();
         }
-        System.out.println(" ");
+        System.out.println("");
         for (Element e : element) {
             e.print();
         }
@@ -46,5 +45,4 @@ public class Book {
     public void addContent(Element e) {
         element.add(e);
     }
-
 }

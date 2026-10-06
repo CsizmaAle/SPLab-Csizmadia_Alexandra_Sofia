@@ -1,13 +1,11 @@
 package classses;
 
 public interface Element {
-    
-    public void print() ;
+    void print();
 
-    public void add(Element element);
+    void add(Element element);
 
-    public void remove(Element element);
+    void remove(Element element);
 
-    public Element get(int index);
-
+    Element get(int index);
 }

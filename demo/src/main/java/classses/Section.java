@@ -15,11 +15,11 @@ public class Section implements Element {
         return title;
     }
 
-    @Override 
+    @Override
     public void print() {
         System.out.println(title);
-        for (Element e : children) {
-            e.print();
+        for (Element child : children) {
+            child.print();
         }
     }
 
@@ -40,5 +40,4 @@ public class Section implements Element {
         }
         return null;
     }
-
 }
