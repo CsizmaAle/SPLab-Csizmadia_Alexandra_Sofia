@@ -3,46 +3,40 @@ package classses;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Book {
-    private String title;
+public class Book extends Section {
     private List<Author> authors = new ArrayList<>();
-    private List<Element> element = new ArrayList<>();
 
     public Book(String title, List<Author> authors, List<Element> element) {
-        this.title = title;
+        super(title);
         this.authors.addAll(authors);
-        this.element.addAll(element);
+        for (Element e : element) {
+            add(e);
+        }
     }
 
     public Book(String title) {
-        this.title = title;
+        super(title);
     }
 
     public void addAuthor(Author author) {
         authors.add(author);
     }
 
-    public String getTitle() {
-        return title;
-    }
-
     public List<Author> getAuthors() {
         return authors;
     }
 
+    @Override
     public void print() {
-        System.out.println("Book Title: " + title + "\n");
         System.out.println("Authors:");
         for (Author author : authors) {
             author.print();
         }
         System.out.println("");
-        for (Element e : element) {
-            e.print();
-        }
+        super.print();
     }
 
     public void addContent(Element e) {
-        element.add(e);
+        add(e);
     }
 }
