@@ -12,11 +12,6 @@ public class Table implements Element {
     }
 
     @Override
-    public void print() {
-        System.out.println("Table name: " + title);
-    }
-
-    @Override
     public void add(Element element) {
     }
 

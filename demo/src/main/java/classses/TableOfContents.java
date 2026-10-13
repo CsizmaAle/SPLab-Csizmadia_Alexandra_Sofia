@@ -1,7 +1,12 @@
 package classses;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TableOfContents implements Element {
     private String title;
+    private List<String> chapters = new ArrayList<>();
+    private List<Integer> pages = new ArrayList<>();
 
     public TableOfContents(String title) {
         this.title = title;
@@ -11,9 +16,17 @@ public class TableOfContents implements Element {
         return title;
     }
 
-    @Override
-    public void print() {
-        System.out.println("Table of Contents: " + title);
+    public void addEntry(String chapter, int page) {
+        chapters.add(chapter);
+        pages.add(page);
+    }
+
+    public List<String> getChapters() {
+        return chapters;
+    }
+
+    public List<Integer> getPages() {
+        return pages;
     }
 
     @Override
@@ -30,10 +43,10 @@ public class TableOfContents implements Element {
     }
 
 
-    @Override 
+    @Override
     public void accept(Visitor v){
         v.visit(this);
     }
 
-    
+
 }
