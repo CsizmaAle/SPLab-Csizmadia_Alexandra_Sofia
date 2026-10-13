@@ -41,9 +41,12 @@ public class Section implements Element {
         return null;
     }
 
-    @Override 
-    public void accept(Visitor v){
-        v.visit(this);
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+        for (Element child : children) {
+            child.accept(visitor);
+        }
     }
 
 }
