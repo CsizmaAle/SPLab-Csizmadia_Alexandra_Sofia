@@ -34,11 +34,6 @@ public class ImageProxy implements Element, Picture {
     }
 
     @Override
-    public void print() {
-        loadImage().print();
-    }
-
-    @Override
     public void add(Element element) {
     }
 
@@ -49,5 +44,10 @@ public class ImageProxy implements Element, Picture {
     @Override
     public Element get(int index) {
         return null;
+    }
+
+    @Override 
+    public void accept(Visitor v){
+        v.visit(this);
     }
 }

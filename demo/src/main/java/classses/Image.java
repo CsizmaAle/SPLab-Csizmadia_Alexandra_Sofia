@@ -33,11 +33,6 @@ public class Image implements Element, Picture {
     }
 
     @Override
-    public void print() {
-        System.out.println("Image with name: " + url);
-    }
-
-    @Override
     public void add(Element element) {
     }
 
@@ -49,4 +44,10 @@ public class Image implements Element, Picture {
     public Element get(int index) {
         return null;
     }
+
+    @Override 
+    public void accept(Visitor v){
+        v.visit(this);
+    }
+
 }

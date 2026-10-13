@@ -12,11 +12,6 @@ public class Table implements Element {
     }
 
     @Override
-    public void print() {
-        System.out.println("Table name: " + title);
-    }
-
-    @Override
     public void add(Element element) {
     }
 
@@ -28,4 +23,11 @@ public class Table implements Element {
     public Element get(int index) {
         return null;
     }
+
+
+    @Override 
+    public void accept(Visitor v){
+        v.visit(this);
+    }
+    
 }

@@ -15,12 +15,8 @@ public class Section implements Element {
         return title;
     }
 
-    @Override
-    public void print() {
-        System.out.println(title);
-        for (Element child : children) {
-            child.print();
-        }
+    protected List<Element> getChildren() {
+        return children;
     }
 
     @Override
@@ -40,4 +36,13 @@ public class Section implements Element {
         }
         return null;
     }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+        for (Element child : children) {
+            child.accept(visitor);
+        }
+    }
+
 }

@@ -26,17 +26,15 @@ public class Book extends Section {
         return authors;
     }
 
-    @Override
-    public void print() {
-        System.out.println("Authors:");
-        for (Author author : authors) {
-            author.print();
-        }
-        System.out.println("");
-        super.print();
-    }
-
     public void addContent(Element e) {
         add(e);
+    }
+
+    @Override
+    public void accept(Visitor v){
+        v.visit(this);
+        for (Element child : getChildren()) {
+            child.accept(v);
+        }
     }
 }

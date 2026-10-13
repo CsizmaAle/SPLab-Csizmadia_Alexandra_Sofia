@@ -29,12 +29,14 @@ public class Paragraph implements Element {
         return null;
     }
 
-    @Override
-    public void print() {
-        if (textAlignment != null) {
-            textAlignment.render(this, new Context(30));
-        } else {
-            System.out.println("Paragraph: " + text);
-        }
+    public AlignStrategy getTextAlignment(){
+        return textAlignment;
     }
+
+
+    @Override 
+    public void accept(Visitor v){
+        v.visit(this);
+    }
+
 }
