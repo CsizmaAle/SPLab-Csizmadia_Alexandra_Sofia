@@ -40,4 +40,10 @@ public class Section implements Element {
         }
         return null;
     }
+
+    @Override 
+    public void accept(Visitor v){
+        v.visit(this);
+    }
+
 }

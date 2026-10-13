@@ -37,4 +37,11 @@ public class Paragraph implements Element {
             System.out.println("Paragraph: " + text);
         }
     }
+
+
+    @Override 
+    public void accept(Visitor v){
+        v.visit(this);
+    }
+
 }

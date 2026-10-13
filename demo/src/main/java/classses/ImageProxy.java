@@ -50,4 +50,9 @@ public class ImageProxy implements Element, Picture {
     public Element get(int index) {
         return null;
     }
+
+    @Override 
+    public void accept(Visitor v){
+        v.visit(this);
+    }
 }
