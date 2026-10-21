@@ -4,6 +4,7 @@ LabNotes/
 target/
 out/
 *.class
+logs/
 
 # IDE
 .idea/
