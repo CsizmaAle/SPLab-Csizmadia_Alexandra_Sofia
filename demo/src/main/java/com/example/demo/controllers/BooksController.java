@@ -22,7 +22,7 @@ import com.example.demo.commands.GetAllBooksCommand;
 import com.example.demo.commands.GetBookByIdCommand;
 import com.example.demo.commands.RequestTracker;
 import com.example.demo.commands.UpdateBookCommand;
-import com.example.demo.models.Book;
+import com.example.demo.models.BookDto;
 import com.example.demo.models.RequestStatus;
 import com.example.demo.services.BooksService;
 import com.example.demo.services.IsbnService;
@@ -48,20 +48,20 @@ public class BooksController {
     }
 
     @GetMapping
-    public List<Book> getAllBooks() {
+    public List<BookDto> getAllBooks() {
         return syncExecutor.execute(new GetAllBooksCommand(booksService)).join();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+    public ResponseEntity<BookDto> getBookById(@PathVariable Long id) {
         return syncExecutor.execute(new GetBookByIdCommand(booksService, id)).join()
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<RequestStatus> createBook(@RequestBody Book book) {
-        CompletableFuture<Book> future = asyncExecutor.execute(new CreateBookCommand(booksService, isbnService, book));
+    public ResponseEntity<RequestStatus> createBook(@RequestBody BookDto book) {
+        CompletableFuture<BookDto> future = asyncExecutor.execute(new CreateBookCommand(booksService, isbnService, book));
         String requestId = requestTracker.track(future);
         return ResponseEntity.accepted()
                 .location(URI.create("/books/requests/" + requestId))
@@ -76,7 +76,7 @@ public class BooksController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book book) {
+    public ResponseEntity<BookDto> updateBook(@PathVariable Long id, @RequestBody BookDto book) {
         return syncExecutor.execute(new UpdateBookCommand(booksService, id, book)).join()
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

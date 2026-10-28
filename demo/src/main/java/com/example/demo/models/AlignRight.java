@@ -1,10 +1,10 @@
-package classses;
+package com.example.demo.models;
 
-public class AlignCenter implements AlignStrategy {
+public class AlignRight implements AlignStrategy {
     @Override
     public void render(Paragraph paragraph, Context context) {
         String text = paragraph.getText();
-        int spaces = Math.max(0, (context.getLineWidth() - text.length()) / 2);
+        int spaces = Math.max(0, context.getLineWidth() - text.length());
         System.out.println(" ".repeat(spaces) + text);
     }
 }

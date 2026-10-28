@@ -1,7 +1,15 @@
-package classses;
+package com.example.demo.models;
 
-public class Table implements Element {
+import jakarta.persistence.Entity;
+
+// "Table" e cuvant rezervat in SQL, asa ca tabelul primeste alt nume
+@Entity
+@jakarta.persistence.Table(name = "TableElement")
+public class Table extends BaseElement {
     private String title;
+
+    protected Table() {
+    }
 
     public Table(String title) {
         this.title = title;

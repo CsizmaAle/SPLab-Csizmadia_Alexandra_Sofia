@@ -9,34 +9,34 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 
-import com.example.demo.models.Book;
+import com.example.demo.models.BookDto;
 
 @Service
 public class BooksService {
-    private final Map<Long, Book> books = new ConcurrentHashMap<>();
+    private final Map<Long, BookDto> books = new ConcurrentHashMap<>();
     private final AtomicLong nextId = new AtomicLong(1);
 
-    public List<Book> findAll() {
+    public List<BookDto> findAll() {
         return new ArrayList<>(books.values());
     }
 
-    public Optional<Book> findById(Long id) {
+    public Optional<BookDto> findById(Long id) {
         return Optional.ofNullable(books.get(id));
     }
 
-    public Book create(Book book, String isbn) {
+    public BookDto create(BookDto book, String isbn) {
         Long id = nextId.getAndIncrement();
-        Book saved = new Book(id, book.title(), book.authors(), isbn);
+        BookDto saved = new BookDto(id, book.title(), book.authors(), isbn);
         books.put(id, saved);
         return saved;
     }
 
-    public Optional<Book> update(Long id, Book book) {
-        Book existing = books.get(id);
+    public Optional<BookDto> update(Long id, BookDto book) {
+        BookDto existing = books.get(id);
         if (existing == null) {
             return Optional.empty();
         }
-        Book updated = new Book(id, book.title(), book.authors(), existing.isbn());
+        BookDto updated = new BookDto(id, book.title(), book.authors(), existing.isbn());
         books.put(id, updated);
         return Optional.of(updated);
     }

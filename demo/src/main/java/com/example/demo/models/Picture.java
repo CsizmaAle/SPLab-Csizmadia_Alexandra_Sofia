@@ -1,4 +1,4 @@
-package classses;
+package com.example.demo.models;
 
 import java.awt.Dimension;
 

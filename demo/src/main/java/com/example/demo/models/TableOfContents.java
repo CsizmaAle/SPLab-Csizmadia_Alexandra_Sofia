@@ -1,12 +1,24 @@
-package classses;
+package com.example.demo.models;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TableOfContents implements Element {
+import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
+
+@Entity
+public class TableOfContents extends BaseElement {
     private String title;
+
+    // intrarile se recalculeaza cu GenerateToC, nu se salveaza
+    @Transient
     private List<String> chapters = new ArrayList<>();
+
+    @Transient
     private List<Integer> pages = new ArrayList<>();
+
+    protected TableOfContents() {
+    }
 
     public TableOfContents(String title) {
         this.title = title;

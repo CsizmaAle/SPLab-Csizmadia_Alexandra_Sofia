@@ -1,15 +1,15 @@
 package com.example.demo;
 
-// import classses.Author;
-// import classses.Book;
-// import classses.BookStatistics;
-// import classses.GenerateToC;
-// import classses.Image;
-// import classses.ImageProxy;
-// import classses.Paragraph;
-// import classses.RenderContentVisitor;
-// import classses.Section;
-// import classses.Table;
+// import com.example.demo.models.Author;
+// import com.example.demo.models.Book;
+// import com.example.demo.models.BookStatistics;
+// import com.example.demo.models.GenerateToC;
+// import com.example.demo.models.Image;
+// import com.example.demo.models.ImageProxy;
+// import com.example.demo.models.Paragraph;
+// import com.example.demo.models.RenderContentVisitor;
+// import com.example.demo.models.Section;
+// import com.example.demo.models.Table;
 
 import com.example.demo.difexamples.ClientComponent;
 import com.example.demo.difexamples.SingletonComponent;

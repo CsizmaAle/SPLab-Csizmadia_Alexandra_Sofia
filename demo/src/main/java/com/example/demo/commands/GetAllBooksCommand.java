@@ -2,10 +2,10 @@ package com.example.demo.commands;
 
 import java.util.List;
 
-import com.example.demo.models.Book;
+import com.example.demo.models.BookDto;
 import com.example.demo.services.BooksService;
 
-public class GetAllBooksCommand implements Command<List<Book>> {
+public class GetAllBooksCommand implements Command<List<BookDto>> {
     private final BooksService booksService;
 
     public GetAllBooksCommand(BooksService booksService) {
@@ -13,7 +13,7 @@ public class GetAllBooksCommand implements Command<List<Book>> {
     }
 
     @Override
-    public List<Book> execute() {
+    public List<BookDto> execute() {
         return booksService.findAll();
     }
 }
