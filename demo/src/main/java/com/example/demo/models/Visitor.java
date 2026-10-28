@@ -1,4 +1,4 @@
-package classses;
+package com.example.demo.models;
 
 public interface Visitor {
     public void visit(Book b);

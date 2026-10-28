@@ -3,19 +3,19 @@ package com.example.demo.commands;
 import java.util.Optional;
 
 import com.example.demo.models.Book;
-import com.example.demo.services.BooksService;
+import com.example.demo.persistence.CrudRepository;
 
 public class GetBookByIdCommand implements Command<Optional<Book>> {
-    private final BooksService booksService;
-    private final Long id;
+    private final CrudRepository<Book, Integer> booksRepository;
+    private final Integer id;
 
-    public GetBookByIdCommand(BooksService booksService, Long id) {
-        this.booksService = booksService;
+    public GetBookByIdCommand(CrudRepository<Book, Integer> booksRepository, Integer id) {
+        this.booksRepository = booksRepository;
         this.id = id;
     }
 
     @Override
     public Optional<Book> execute() {
-        return booksService.findById(id);
+        return booksRepository.findById(id);
     }
 }

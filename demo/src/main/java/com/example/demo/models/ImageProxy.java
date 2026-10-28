@@ -1,11 +1,22 @@
-package classses;
+package com.example.demo.models;
 
 import java.awt.Dimension;
 
-public class ImageProxy implements Element, Picture {
+import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
+
+@Entity
+public class ImageProxy extends BaseElement implements Picture {
     private String url;
+
+    @Transient
     private Dimension dim;
+
+    @Transient
     private Image realImg;
+
+    protected ImageProxy() {
+    }
 
     public ImageProxy(String url) {
         this.url = url;
@@ -16,6 +27,10 @@ public class ImageProxy implements Element, Picture {
             realImg = new Image(url);
         }
         return realImg;
+    }
+
+    public String getUrl() {
+        return url;
     }
 
     @Override

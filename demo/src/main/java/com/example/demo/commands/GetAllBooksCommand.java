@@ -3,17 +3,17 @@ package com.example.demo.commands;
 import java.util.List;
 
 import com.example.demo.models.Book;
-import com.example.demo.services.BooksService;
+import com.example.demo.persistence.CrudRepository;
 
 public class GetAllBooksCommand implements Command<List<Book>> {
-    private final BooksService booksService;
+    private final CrudRepository<Book, Integer> booksRepository;
 
-    public GetAllBooksCommand(BooksService booksService) {
-        this.booksService = booksService;
+    public GetAllBooksCommand(CrudRepository<Book, Integer> booksRepository) {
+        this.booksRepository = booksRepository;
     }
 
     @Override
     public List<Book> execute() {
-        return booksService.findAll();
+        return booksRepository.findAll();
     }
 }

@@ -1,4 +1,4 @@
-package classses;
+package com.example.demo.models;
 
 public class GenerateToC implements Visitor {
     private TableOfContents toc = new TableOfContents("Table of Contents");

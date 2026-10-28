@@ -23,24 +23,29 @@ import com.example.demo.commands.GetBookByIdCommand;
 import com.example.demo.commands.RequestTracker;
 import com.example.demo.commands.UpdateBookCommand;
 import com.example.demo.models.Book;
+import com.example.demo.models.BookRequest;
 import com.example.demo.models.RequestStatus;
-import com.example.demo.services.BooksService;
+import com.example.demo.persistence.AuthorsCrudRepository;
+import com.example.demo.persistence.CrudRepository;
 import com.example.demo.services.IsbnService;
 
 @RestController
 @RequestMapping("/books")
 public class BooksController {
-    private final BooksService booksService;
+    private final CrudRepository<Book, Integer> booksRepository;
+    private final AuthorsCrudRepository authorsRepository;
     private final IsbnService isbnService;
     private final CommandExecutor syncExecutor;
     private final CommandExecutor asyncExecutor;
     private final RequestTracker requestTracker;
 
-    public BooksController(BooksService booksService, IsbnService isbnService,
+    public BooksController(CrudRepository<Book, Integer> booksRepository, AuthorsCrudRepository authorsRepository,
+            IsbnService isbnService,
             @Qualifier("syncCommandExecutor") CommandExecutor syncExecutor,
             @Qualifier("asyncCommandExecutor") CommandExecutor asyncExecutor,
             RequestTracker requestTracker) {
-        this.booksService = booksService;
+        this.booksRepository = booksRepository;
+        this.authorsRepository = authorsRepository;
         this.isbnService = isbnService;
         this.syncExecutor = syncExecutor;
         this.asyncExecutor = asyncExecutor;
@@ -49,19 +54,20 @@ public class BooksController {
 
     @GetMapping
     public List<Book> getAllBooks() {
-        return syncExecutor.execute(new GetAllBooksCommand(booksService)).join();
+        return syncExecutor.execute(new GetAllBooksCommand(booksRepository)).join();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
-        return syncExecutor.execute(new GetBookByIdCommand(booksService, id)).join()
+    public ResponseEntity<Book> getBookById(@PathVariable Integer id) {
+        return syncExecutor.execute(new GetBookByIdCommand(booksRepository, id)).join()
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<RequestStatus> createBook(@RequestBody Book book) {
-        CompletableFuture<Book> future = asyncExecutor.execute(new CreateBookCommand(booksService, isbnService, book));
+    public ResponseEntity<RequestStatus> createBook(@RequestBody BookRequest request) {
+        CompletableFuture<Book> future = asyncExecutor.execute(
+                new CreateBookCommand(booksRepository, authorsRepository, isbnService, request));
         String requestId = requestTracker.track(future);
         return ResponseEntity.accepted()
                 .location(URI.create("/books/requests/" + requestId))
@@ -76,15 +82,15 @@ public class BooksController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book book) {
-        return syncExecutor.execute(new UpdateBookCommand(booksService, id, book)).join()
+    public ResponseEntity<Book> updateBook(@PathVariable Integer id, @RequestBody BookRequest request) {
+        return syncExecutor.execute(new UpdateBookCommand(booksRepository, authorsRepository, id, request)).join()
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
-        boolean deleted = syncExecutor.execute(new DeleteBookCommand(booksService, id)).join();
+    public ResponseEntity<Void> deleteBook(@PathVariable Integer id) {
+        boolean deleted = syncExecutor.execute(new DeleteBookCommand(booksRepository, id)).join();
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }

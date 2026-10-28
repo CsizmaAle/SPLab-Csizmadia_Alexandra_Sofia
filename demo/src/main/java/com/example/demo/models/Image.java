@@ -1,11 +1,20 @@
-package classses;
+package com.example.demo.models;
 
 import java.awt.Dimension;
 import java.util.concurrent.TimeUnit;
 
-public class Image implements Element, Picture {
+import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
+
+@Entity
+public class Image extends BaseElement implements Picture {
     private String url;
+
+    @Transient
     private ImageContent content;
+
+    protected Image() {
+    }
 
     public Image(String url) {
         this.url = url;
@@ -15,6 +24,10 @@ public class Image implements Element, Picture {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    public String getUrl() {
+        return url;
     }
 
     @Override
