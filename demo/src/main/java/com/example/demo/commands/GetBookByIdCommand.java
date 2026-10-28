@@ -3,13 +3,13 @@ package com.example.demo.commands;
 import java.util.Optional;
 
 import com.example.demo.models.Book;
-import com.example.demo.persistence.BooksRepository;
+import com.example.demo.persistence.CrudRepository;
 
 public class GetBookByIdCommand implements Command<Optional<Book>> {
-    private final BooksRepository booksRepository;
+    private final CrudRepository<Book, Integer> booksRepository;
     private final Integer id;
 
-    public GetBookByIdCommand(BooksRepository booksRepository, Integer id) {
+    public GetBookByIdCommand(CrudRepository<Book, Integer> booksRepository, Integer id) {
         this.booksRepository = booksRepository;
         this.id = id;
     }

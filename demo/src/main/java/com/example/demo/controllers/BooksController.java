@@ -25,21 +25,21 @@ import com.example.demo.commands.UpdateBookCommand;
 import com.example.demo.models.Book;
 import com.example.demo.models.BookRequest;
 import com.example.demo.models.RequestStatus;
-import com.example.demo.persistence.AuthorsRepository;
-import com.example.demo.persistence.BooksRepository;
+import com.example.demo.persistence.AuthorsCrudRepository;
+import com.example.demo.persistence.CrudRepository;
 import com.example.demo.services.IsbnService;
 
 @RestController
 @RequestMapping("/books")
 public class BooksController {
-    private final BooksRepository booksRepository;
-    private final AuthorsRepository authorsRepository;
+    private final CrudRepository<Book, Integer> booksRepository;
+    private final AuthorsCrudRepository authorsRepository;
     private final IsbnService isbnService;
     private final CommandExecutor syncExecutor;
     private final CommandExecutor asyncExecutor;
     private final RequestTracker requestTracker;
 
-    public BooksController(BooksRepository booksRepository, AuthorsRepository authorsRepository,
+    public BooksController(CrudRepository<Book, Integer> booksRepository, AuthorsCrudRepository authorsRepository,
             IsbnService isbnService,
             @Qualifier("syncCommandExecutor") CommandExecutor syncExecutor,
             @Qualifier("asyncCommandExecutor") CommandExecutor asyncExecutor,

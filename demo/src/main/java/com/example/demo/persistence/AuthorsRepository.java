@@ -11,9 +11,4 @@ import com.example.demo.models.Author;
 public interface AuthorsRepository extends JpaRepository<Author, Integer> {
 
     Optional<Author> findFirstByName(String name);
-
-    // refoloseste autorul existent cu acelasi nume, altfel il salveaza pe cel nou
-    default Author findOrCreate(String name) {
-        return findFirstByName(name).orElseGet(() -> save(new Author(name)));
-    }
 }

@@ -9,16 +9,16 @@ import com.example.demo.models.Paragraph;
 import com.example.demo.models.Section;
 import com.example.demo.models.Table;
 import com.example.demo.models.TableOfContents;
-import com.example.demo.persistence.AuthorsRepository;
-import com.example.demo.persistence.BooksRepository;
+import com.example.demo.persistence.AuthorsCrudRepository;
+import com.example.demo.persistence.CrudRepository;
 
 // Salveaza o carte demo la prima pornire, ca sa se vada structura in baza de date
 @Component
 public class DemoDataLoader implements CommandLineRunner {
-    private final BooksRepository booksRepository;
-    private final AuthorsRepository authorsRepository;
+    private final CrudRepository<Book, Integer> booksRepository;
+    private final AuthorsCrudRepository authorsRepository;
 
-    public DemoDataLoader(BooksRepository booksRepository, AuthorsRepository authorsRepository) {
+    public DemoDataLoader(CrudRepository<Book, Integer> booksRepository, AuthorsCrudRepository authorsRepository) {
         this.booksRepository = booksRepository;
         this.authorsRepository = authorsRepository;
     }

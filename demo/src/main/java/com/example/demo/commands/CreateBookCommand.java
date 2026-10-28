@@ -2,18 +2,18 @@ package com.example.demo.commands;
 
 import com.example.demo.models.Book;
 import com.example.demo.models.BookRequest;
-import com.example.demo.persistence.AuthorsRepository;
-import com.example.demo.persistence.BooksRepository;
+import com.example.demo.persistence.AuthorsCrudRepository;
+import com.example.demo.persistence.CrudRepository;
 import com.example.demo.services.IsbnService;
 
 // Orchestreaza mai multe servicii: obtine ISBN-ul, autorii, apoi salveaza cartea
 public class CreateBookCommand implements Command<Book> {
-    private final BooksRepository booksRepository;
-    private final AuthorsRepository authorsRepository;
+    private final CrudRepository<Book, Integer> booksRepository;
+    private final AuthorsCrudRepository authorsRepository;
     private final IsbnService isbnService;
     private final BookRequest request;
 
-    public CreateBookCommand(BooksRepository booksRepository, AuthorsRepository authorsRepository,
+    public CreateBookCommand(CrudRepository<Book, Integer> booksRepository, AuthorsCrudRepository authorsRepository,
             IsbnService isbnService, BookRequest request) {
         this.booksRepository = booksRepository;
         this.authorsRepository = authorsRepository;
