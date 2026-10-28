@@ -1,5 +1,7 @@
 package com.example.demo.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 
@@ -38,6 +40,7 @@ public class Paragraph extends BaseElement {
         return null;
     }
 
+    @JsonIgnore
     public AlignStrategy getTextAlignment(){
         return textAlignment;
     }

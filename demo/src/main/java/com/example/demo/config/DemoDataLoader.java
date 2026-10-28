@@ -3,22 +3,24 @@ package com.example.demo.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import com.example.demo.models.Author;
 import com.example.demo.models.Book;
 import com.example.demo.models.ImageProxy;
 import com.example.demo.models.Paragraph;
 import com.example.demo.models.Section;
 import com.example.demo.models.Table;
 import com.example.demo.models.TableOfContents;
+import com.example.demo.persistence.AuthorsRepository;
 import com.example.demo.persistence.BooksRepository;
 
 // Salveaza o carte demo la prima pornire, ca sa se vada structura in baza de date
 @Component
 public class DemoDataLoader implements CommandLineRunner {
     private final BooksRepository booksRepository;
+    private final AuthorsRepository authorsRepository;
 
-    public DemoDataLoader(BooksRepository booksRepository) {
+    public DemoDataLoader(BooksRepository booksRepository, AuthorsRepository authorsRepository) {
         this.booksRepository = booksRepository;
+        this.authorsRepository = authorsRepository;
     }
 
     @Override
@@ -29,8 +31,8 @@ public class DemoDataLoader implements CommandLineRunner {
 
         Book book = new Book("Carte demo");
         book.setIsbn("978-0000000000");
-        book.addAuthor(new Author("Ana Popescu"));
-        book.addAuthor(new Author("Ion Ionescu"));
+        book.addAuthor(authorsRepository.findOrCreate("Ana Popescu"));
+        book.addAuthor(authorsRepository.findOrCreate("Ion Ionescu"));
 
         book.add(new TableOfContents("Cuprins"));
 

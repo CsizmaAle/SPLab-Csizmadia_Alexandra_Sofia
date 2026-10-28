@@ -3,7 +3,6 @@ package com.example.demo.models;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 
@@ -11,7 +10,8 @@ import jakarta.persistence.ManyToMany;
 public class Book extends Section {
     private String isbn;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    // fara cascade: autorii se salveaza separat, ca sa poata fi refolositi intre carti
+    @ManyToMany
     private List<Author> authors = new ArrayList<>();
 
     protected Book() {
@@ -43,6 +43,10 @@ public class Book extends Section {
 
     public List<Author> getAuthors() {
         return authors;
+    }
+
+    public void setAuthors(List<Author> authors) {
+        this.authors = new ArrayList<>(authors);
     }
 
     public void addContent(Element e) {

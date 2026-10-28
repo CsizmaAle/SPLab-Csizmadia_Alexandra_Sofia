@@ -3,6 +3,8 @@ package com.example.demo.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 
@@ -33,10 +35,12 @@ public class TableOfContents extends BaseElement {
         pages.add(page);
     }
 
+    @JsonIgnore
     public List<String> getChapters() {
         return chapters;
     }
 
+    @JsonIgnore
     public List<Integer> getPages() {
         return pages;
     }

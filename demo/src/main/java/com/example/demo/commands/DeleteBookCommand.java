@@ -1,18 +1,22 @@
 package com.example.demo.commands;
 
-import com.example.demo.services.BooksService;
+import com.example.demo.persistence.BooksRepository;
 
 public class DeleteBookCommand implements Command<Boolean> {
-    private final BooksService booksService;
-    private final Long id;
+    private final BooksRepository booksRepository;
+    private final Integer id;
 
-    public DeleteBookCommand(BooksService booksService, Long id) {
-        this.booksService = booksService;
+    public DeleteBookCommand(BooksRepository booksRepository, Integer id) {
+        this.booksRepository = booksRepository;
         this.id = id;
     }
 
     @Override
     public Boolean execute() {
-        return booksService.delete(id);
+        if (!booksRepository.existsById(id)) {
+            return false;
+        }
+        booksRepository.deleteById(id);
+        return true;
     }
 }

@@ -26,6 +26,10 @@ public class Image extends BaseElement implements Picture {
         }
     }
 
+    public String getUrl() {
+        return url;
+    }
+
     @Override
     public String url() {
         return url;

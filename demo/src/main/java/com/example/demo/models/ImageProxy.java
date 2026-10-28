@@ -29,6 +29,10 @@ public class ImageProxy extends BaseElement implements Picture {
         return realImg;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
     @Override
     public String url() {
         return url;

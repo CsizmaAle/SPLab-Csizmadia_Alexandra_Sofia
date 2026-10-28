@@ -1,24 +1,33 @@
 package com.example.demo.commands;
 
-import com.example.demo.models.BookDto;
-import com.example.demo.services.BooksService;
+import com.example.demo.models.Book;
+import com.example.demo.models.BookRequest;
+import com.example.demo.persistence.AuthorsRepository;
+import com.example.demo.persistence.BooksRepository;
 import com.example.demo.services.IsbnService;
 
-// Orchestreaza doua servicii: obtine ISBN-ul, apoi salveaza cartea
-public class CreateBookCommand implements Command<BookDto> {
-    private final BooksService booksService;
+// Orchestreaza mai multe servicii: obtine ISBN-ul, autorii, apoi salveaza cartea
+public class CreateBookCommand implements Command<Book> {
+    private final BooksRepository booksRepository;
+    private final AuthorsRepository authorsRepository;
     private final IsbnService isbnService;
-    private final BookDto book;
+    private final BookRequest request;
 
-    public CreateBookCommand(BooksService booksService, IsbnService isbnService, BookDto book) {
-        this.booksService = booksService;
+    public CreateBookCommand(BooksRepository booksRepository, AuthorsRepository authorsRepository,
+            IsbnService isbnService, BookRequest request) {
+        this.booksRepository = booksRepository;
+        this.authorsRepository = authorsRepository;
         this.isbnService = isbnService;
-        this.book = book;
+        this.request = request;
     }
 
     @Override
-    public BookDto execute() {
-        String isbn = isbnService.generateIsbn();
-        return booksService.create(book, isbn);
+    public Book execute() {
+        Book book = new Book(request.title());
+        book.setIsbn(isbnService.generateIsbn());
+        for (String name : request.authors()) {
+            book.addAuthor(authorsRepository.findOrCreate(name));
+        }
+        return booksRepository.save(book);
     }
 }

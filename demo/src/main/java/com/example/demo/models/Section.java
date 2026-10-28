@@ -27,7 +27,11 @@ public class Section extends BaseElement {
         return title;
     }
 
-    protected List<Element> getChildren() {
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public List<Element> getChildren() {
         return children;
     }
 
