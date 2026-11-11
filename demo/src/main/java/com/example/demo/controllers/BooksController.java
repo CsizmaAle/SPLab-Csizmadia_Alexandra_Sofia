@@ -25,6 +25,7 @@ import com.example.demo.commands.UpdateBookCommand;
 import com.example.demo.models.Book;
 import com.example.demo.models.BookRequest;
 import com.example.demo.models.RequestStatus;
+import com.example.demo.observers.AllBooksSubject;
 import com.example.demo.persistence.AuthorsCrudRepository;
 import com.example.demo.persistence.CrudRepository;
 import com.example.demo.services.IsbnService;
@@ -38,18 +39,20 @@ public class BooksController {
     private final CommandExecutor syncExecutor;
     private final CommandExecutor asyncExecutor;
     private final RequestTracker requestTracker;
+    private final AllBooksSubject allBooksSubject;
 
     public BooksController(CrudRepository<Book, Integer> booksRepository, AuthorsCrudRepository authorsRepository,
             IsbnService isbnService,
             @Qualifier("syncCommandExecutor") CommandExecutor syncExecutor,
             @Qualifier("asyncCommandExecutor") CommandExecutor asyncExecutor,
-            RequestTracker requestTracker) {
+            RequestTracker requestTracker, AllBooksSubject allBooksSubject) {
         this.booksRepository = booksRepository;
         this.authorsRepository = authorsRepository;
         this.isbnService = isbnService;
         this.syncExecutor = syncExecutor;
         this.asyncExecutor = asyncExecutor;
         this.requestTracker = requestTracker;
+        this.allBooksSubject = allBooksSubject;
     }
 
     @GetMapping
@@ -68,6 +71,8 @@ public class BooksController {
     public ResponseEntity<RequestStatus> createBook(@RequestBody BookRequest request) {
         CompletableFuture<Book> future = asyncExecutor.execute(
                 new CreateBookCommand(booksRepository, authorsRepository, isbnService, request));
+        // dupa ce cartea e salvata (asincron), anunta observatorii
+        future.thenAccept(allBooksSubject::add);
         String requestId = requestTracker.track(future);
         return ResponseEntity.accepted()
                 .location(URI.create("/books/requests/" + requestId))

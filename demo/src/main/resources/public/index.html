@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>All Books</title>
+</head>
+<body>
+
+<h1>All Books</h1>
+<a href="javascript:void(0)" onclick="sendRequest()">Fetch Books</a>
+<div id="sseDiv"></div>
+
+<script>
+    // o singura conexiune, chiar daca linkul e apasat de mai multe ori
+    let source = null;
+
+    function sendRequest() {
+        if (typeof(EventSource) === "undefined") {
+            document.getElementById("sseDiv").innerHTML = "Your browser does not support server-sent events.";
+            return;
+        }
+        if (source !== null) {
+            return;
+        }
+        source = new EventSource("/books-sse");
+        source.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const authors = data.authors.map(a => a.name).join(", ");
+            const line = document.createElement("div");
+            line.textContent = data.id + " - " + data.title + " (" + authors + ")";
+            document.getElementById("sseDiv").appendChild(line);
+        };
+    }
+</script>
+
+</body>
+</html>
