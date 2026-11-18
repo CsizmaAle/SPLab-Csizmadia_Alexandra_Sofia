@@ -3,6 +3,7 @@ package com.example.demo.commands;
 import java.util.Optional;
 
 import com.example.demo.models.Book;
+import com.example.demo.models.TableOfContents;
 import com.example.demo.persistence.CrudRepository;
 
 // Sterge un element (si tot ce contine, daca e sectiune) din carte
@@ -21,6 +22,10 @@ public class RemoveElementCommand implements Command<Optional<Book>> {
     @Override
     public Optional<Book> execute() {
         return booksRepository.findById(bookId).flatMap(book -> {
+            // cuprinsul face parte din orice carte, deci nu se sterge
+            if (ElementTree.find(book, elementId).orElse(null) instanceof TableOfContents) {
+                throw new IllegalArgumentException("Cuprinsul nu poate fi sters");
+            }
             if (!ElementTree.remove(book, elementId)) {
                 return Optional.empty();
             }

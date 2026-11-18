@@ -115,9 +115,13 @@ public class BooksController {
     }
 
     @DeleteMapping("/{id}/elements/{elementId}")
-    public ResponseEntity<Book> removeElement(@PathVariable Integer id, @PathVariable Integer elementId) {
-        return syncExecutor.execute(new RemoveElementCommand(booksRepository, id, elementId)).join()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> removeElement(@PathVariable Integer id, @PathVariable Integer elementId) {
+        try {
+            return syncExecutor.execute(new RemoveElementCommand(booksRepository, id, elementId)).join()
+                    .<ResponseEntity<?>>map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

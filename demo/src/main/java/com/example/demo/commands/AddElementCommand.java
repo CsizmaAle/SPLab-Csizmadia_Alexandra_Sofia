@@ -9,7 +9,6 @@ import com.example.demo.models.ImageProxy;
 import com.example.demo.models.Paragraph;
 import com.example.demo.models.Section;
 import com.example.demo.models.Table;
-import com.example.demo.models.TableOfContents;
 import com.example.demo.persistence.CrudRepository;
 
 // Adauga un element nou in carte sau intr-o sectiune a ei
@@ -52,7 +51,9 @@ public class AddElementCommand implements Command<Optional<Book>> {
             // ImageProxy: imaginea reala (lenta) se incarca doar cand e nevoie de continut
             case "Image", "ImageProxy" -> new ImageProxy(text);
             case "Table" -> new Table(text);
-            case "TableOfContents" -> new TableOfContents(text.isEmpty() ? "Cuprins" : text);
+            // fiecare carte primeste cuprinsul automat, la inceput, cand e creata
+            case "TableOfContents" -> throw new IllegalArgumentException(
+                    "Cuprinsul se adauga automat la inceputul cartii");
             default -> throw new IllegalArgumentException("Tip de element necunoscut: " + request.type());
         };
     }

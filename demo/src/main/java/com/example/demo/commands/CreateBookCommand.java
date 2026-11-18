@@ -2,6 +2,7 @@ package com.example.demo.commands;
 
 import com.example.demo.models.Book;
 import com.example.demo.models.BookRequest;
+import com.example.demo.models.TableOfContents;
 import com.example.demo.persistence.AuthorsCrudRepository;
 import com.example.demo.persistence.CrudRepository;
 import com.example.demo.services.IsbnService;
@@ -24,6 +25,8 @@ public class CreateBookCommand implements Command<Book> {
     @Override
     public Book execute() {
         Book book = new Book(request.title());
+        // orice carte noua incepe cu cuprinsul (cartea e goala, deci ajunge primul)
+        book.add(new TableOfContents("Cuprins"));
         book.setIsbn(isbnService.generateIsbn());
         for (String name : request.authors()) {
             book.addAuthor(authorsRepository.findOrCreate(name));

@@ -405,6 +405,9 @@
         const item = el("div", "item");
         item.appendChild(renderElement(element, book, depth));
 
+        // cuprinsul e automat si nu se poate sterge
+        if (element.type === "TableOfContents") return item;
+
         const del = el("button", "del", "×");
         del.type = "button";
         del.title = "Șterge";
@@ -482,8 +485,8 @@
         Paragraph:       { name: "Paragraf",          field: "Text",              placeholder: "Scrie textul paragrafului…" },
         Image:           { name: "Imagine",           field: "URL sau nume imagine", placeholder: "ex. https://…/poza.jpg" },
         Section:         { name: "Capitol / secțiune", field: "Titlu",             placeholder: "ex. Capitolul 3" },
-        Table:           { name: "Tabel",             field: "Titlu tabel",       placeholder: "ex. Tabel 2" },
-        TableOfContents: { name: "Cuprins",           field: "Titlu (opțional)",  placeholder: "Cuprins" }
+        Table:           { name: "Tabel",             field: "Titlu tabel",       placeholder: "ex. Tabel 2" }
+        // cuprinsul nu apare aici: serverul il pune automat la inceputul fiecarei carti
     };
 
     // ultimele alegeri, ca sa poti adauga mai multe paragrafe la rand in acelasi capitol
@@ -559,7 +562,7 @@
             e.preventDefault();
             const type = typeSelect.value;
             const text = textInput.value.trim();
-            if (!text && type !== "TableOfContents") {
+            if (!text) {
                 toast("Completează câmpul „" + ELEMENT_TYPES[type].field + "”.", true);
                 return;
             }

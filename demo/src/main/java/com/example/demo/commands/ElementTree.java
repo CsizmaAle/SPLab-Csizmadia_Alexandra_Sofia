@@ -27,6 +27,22 @@ final class ElementTree {
         return Optional.empty();
     }
 
+    // cauta recursiv orice element cu id-ul dat
+    static Optional<Element> find(Section root, Integer id) {
+        for (Element child : root.getChildren()) {
+            if (child instanceof BaseElement base && id.equals(base.getId())) {
+                return Optional.of(child);
+            }
+            if (child instanceof Section section) {
+                Optional<Element> found = find(section, id);
+                if (found.isPresent()) {
+                    return found;
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
     // scoate elementul cu id-ul dat de oriunde din arbore; true daca l-a gasit
     static boolean remove(Section root, Integer id) {
         for (Element child : root.getChildren()) {
