@@ -19,6 +19,8 @@ cd demo
 
 The app starts on `http://localhost:8080`. Stop it with `Ctrl + C`.
 
+Graphical interface for books: `http://localhost:8080/books.html` (list, search, details, add, edit, delete).
+
 Each request is logged (before and after processing) to `demo/logs/requests.log`.
 
 
