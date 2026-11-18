@@ -34,6 +34,8 @@ Each request is logged (before and after processing) to `demo/logs/requests.log`
 | GET | `/books/requests/{requestId}` | status of an async request (`PENDING` / `DONE` / `FAILED`) |
 | PUT | `/books/{id}` | changes the title and authors |
 | DELETE | `/books/{id}` | deletes a book |
+| POST | `/books/{id}/elements` | adds content: `{"type":"Paragraph","text":"...","parentId":null}` (type: `Section`, `Paragraph`, `Image`, `Table`, `TableOfContents`; `parentId` = section id, or `null` for the book itself) |
+| DELETE | `/books/{id}/elements/{elementId}` | removes an element (and everything inside it) |
 
 Example:
 

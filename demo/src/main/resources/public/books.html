@@ -125,6 +125,45 @@
     }
     .box .label { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
     .toc ol { margin: 6px 0 0; padding-left: 20px; color: var(--text); }
+    .box img { display: block; max-width: 100%; max-height: 360px; border-radius: 4px; margin-top: 6px; }
+
+    /* fiecare element are un buton de stergere, vizibil la hover */
+    .item { position: relative; padding-right: 28px; }
+    .item > .del {
+        position: absolute;
+        top: 2px;
+        right: 0;
+        padding: 0 7px;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.4;
+        opacity: 0;
+    }
+    .item:hover > .del, .item > .del:focus { opacity: 1; }
+    .item > .del:hover { color: var(--danger); }
+    @media (hover: none) { .item > .del { opacity: 1; } }
+
+    .add-content {
+        margin-top: 24px;
+        padding: 14px;
+        border-radius: 8px;
+        background: var(--accent-soft);
+    }
+    .add-content h2 { margin-bottom: 4px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > div { flex: 1 1 180px; }
+    select, textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+    }
+    textarea { resize: vertical; }
 
     #toast {
         position: fixed;
@@ -258,6 +297,30 @@
         if (!res.ok) throw new Error("DELETE a eșuat (" + res.status + ")");
     }
 
+    // serverul raspunde cu cartea actualizata
+    async function addElement(bookId, type, text, parentId) {
+        const res = await fetch("/books/" + bookId + "/elements", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type, text, parentId })
+        });
+        if (!res.ok) throw new Error("Adăugarea a eșuat (" + res.status + ")");
+        return res.json();
+    }
+
+    async function removeElement(bookId, elementId) {
+        const res = await fetch("/books/" + bookId + "/elements/" + elementId, { method: "DELETE" });
+        if (!res.ok) throw new Error("Ștergerea a eșuat (" + res.status + ")");
+        return res.json();
+    }
+
+    // inlocuieste cartea din lista locala cu versiunea primita de la server
+    function replaceBook(updated) {
+        books = books.map(b => b.id === updated.id ? updated : b);
+        renderList();
+        renderDetails();
+    }
+
     // ---------- lista de carti ----------
 
     function renderList() {
@@ -330,10 +393,34 @@
             content.appendChild(el("p", "empty", "Cartea nu are conținut."));
         } else {
             for (const child of book.children) {
-                content.appendChild(renderElement(child, book, 0));
+                content.appendChild(renderItem(child, book, 0));
             }
         }
         details.appendChild(content);
+        details.appendChild(renderAddForm(book));
+    }
+
+    // Elementul + butonul lui de stergere
+    function renderItem(element, book, depth) {
+        const item = el("div", "item");
+        item.appendChild(renderElement(element, book, depth));
+
+        const del = el("button", "del", "×");
+        del.type = "button";
+        del.title = "Șterge";
+        del.onclick = async () => {
+            const question = element.type === "Section"
+                ? "Ștergi „" + element.title + "” și tot ce conține?"
+                : "Ștergi acest element?";
+            if (!confirm(question)) return;
+            try {
+                replaceBook(await removeElement(book.id, element.id));
+            } catch (e) {
+                toast(e.message, true);
+            }
+        };
+        item.appendChild(del);
+        return item;
     }
 
     // Deseneaza un element din structura cartii (Composite) in functie de "type"
@@ -344,7 +431,7 @@
                 const level = Math.min(3 + depth, 6);
                 wrap.appendChild(el("h" + level, null, element.title));
                 for (const child of element.children || []) {
-                    wrap.appendChild(renderElement(child, book, depth + 1));
+                    wrap.appendChild(renderItem(child, book, depth + 1));
                 }
                 return wrap;
             }
@@ -353,7 +440,17 @@
             case "Image":
             case "ImageProxy": {
                 const box = el("div", "box");
-                box.append(el("div", "label", "Imagine"), el("div", null, element.url));
+                box.append(el("div", "label", "Imagine"));
+                // daca e un link web, afisam imaginea; altfel doar numele
+                if (/^https?:\/\//i.test(element.url || "")) {
+                    const img = el("img");
+                    img.src = element.url;
+                    img.alt = element.url;
+                    img.onerror = () => img.replaceWith(el("div", null, element.url + " (nu s-a putut încărca)"));
+                    box.appendChild(img);
+                } else {
+                    box.appendChild(el("div", null, element.url));
+                }
                 return box;
             }
             case "Table": {
@@ -377,6 +474,111 @@
                 return box;
             }
         }
+    }
+
+    // ---------- adaugare continut ----------
+
+    const ELEMENT_TYPES = {
+        Paragraph:       { name: "Paragraf",          field: "Text",              placeholder: "Scrie textul paragrafului…" },
+        Image:           { name: "Imagine",           field: "URL sau nume imagine", placeholder: "ex. https://…/poza.jpg" },
+        Section:         { name: "Capitol / secțiune", field: "Titlu",             placeholder: "ex. Capitolul 3" },
+        Table:           { name: "Tabel",             field: "Titlu tabel",       placeholder: "ex. Tabel 2" },
+        TableOfContents: { name: "Cuprins",           field: "Titlu (opțional)",  placeholder: "Cuprins" }
+    };
+
+    // ultimele alegeri, ca sa poti adauga mai multe paragrafe la rand in acelasi capitol
+    let lastType = "Paragraph";
+    let lastParent = "";
+
+    // toate sectiunile din carte (inclusiv subcapitolele), pentru lista "Unde"
+    function collectSections(elements, depth, out) {
+        for (const e of elements || []) {
+            if (e.type === "Section") {
+                out.push({ id: e.id, title: e.title, depth });
+                collectSections(e.children, depth + 1, out);
+            }
+        }
+        return out;
+    }
+
+    function renderAddForm(book) {
+        const box = el("form", "add-content");
+        box.appendChild(el("h2", null, "Adaugă conținut"));
+
+        const row = el("div", "row");
+
+        const typeWrap = el("div");
+        typeWrap.appendChild(el("label", null, "Ce adaugi"));
+        const typeSelect = el("select");
+        for (const [value, info] of Object.entries(ELEMENT_TYPES)) {
+            const opt = el("option", null, info.name);
+            opt.value = value;
+            typeSelect.appendChild(opt);
+        }
+        typeSelect.value = lastType;
+        typeWrap.appendChild(typeSelect);
+
+        const parentWrap = el("div");
+        parentWrap.appendChild(el("label", null, "Unde"));
+        const parentSelect = el("select");
+        const rootOpt = el("option", null, "Direct în carte (la final)");
+        rootOpt.value = "";
+        parentSelect.appendChild(rootOpt);
+        for (const s of collectSections(book.children, 0, [])) {
+            const opt = el("option", null, "  ".repeat(s.depth) + "în „" + s.title + "”");
+            opt.value = String(s.id);
+            parentSelect.appendChild(opt);
+        }
+        parentSelect.value = [...parentSelect.options].some(o => o.value === lastParent) ? lastParent : "";
+        parentWrap.appendChild(parentSelect);
+
+        row.append(typeWrap, parentWrap);
+        box.appendChild(row);
+
+        const textLabel = el("label");
+        const textInput = el("textarea");
+        textInput.rows = 3;
+        box.append(textLabel, textInput);
+
+        function updateLabels() {
+            const info = ELEMENT_TYPES[typeSelect.value];
+            textLabel.textContent = info.field;
+            textInput.placeholder = info.placeholder;
+            textInput.rows = typeSelect.value === "Paragraph" ? 3 : 1;
+        }
+        typeSelect.onchange = updateLabels;
+        updateLabels();
+
+        const actions = el("div", "actions");
+        const addBtn = el("button", null, "Adaugă");
+        addBtn.type = "submit";
+        actions.appendChild(addBtn);
+        box.appendChild(actions);
+
+        box.onsubmit = async (e) => {
+            e.preventDefault();
+            const type = typeSelect.value;
+            const text = textInput.value.trim();
+            if (!text && type !== "TableOfContents") {
+                toast("Completează câmpul „" + ELEMENT_TYPES[type].field + "”.", true);
+                return;
+            }
+            lastType = type;
+            lastParent = parentSelect.value;
+            addBtn.disabled = true;
+            try {
+                const parentId = parentSelect.value === "" ? null : Number(parentSelect.value);
+                replaceBook(await addElement(book.id, type, text, parentId));
+                toast(ELEMENT_TYPES[type].name + " adăugat.");
+                // dupa re-desenare, cursorul ramane in campul de text pentru urmatorul element
+                document.querySelector(".add-content textarea")?.focus();
+            } catch (err) {
+                toast(err.message, true);
+                addBtn.disabled = false;
+            }
+        };
+
+        return box;
     }
 
     function renderEditForm(book) {

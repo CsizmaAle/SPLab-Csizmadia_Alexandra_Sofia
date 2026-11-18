@@ -15,15 +15,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.commands.AddElementCommand;
 import com.example.demo.commands.CommandExecutor;
 import com.example.demo.commands.CreateBookCommand;
 import com.example.demo.commands.DeleteBookCommand;
 import com.example.demo.commands.GetAllBooksCommand;
 import com.example.demo.commands.GetBookByIdCommand;
+import com.example.demo.commands.RemoveElementCommand;
 import com.example.demo.commands.RequestTracker;
 import com.example.demo.commands.UpdateBookCommand;
 import com.example.demo.models.Book;
 import com.example.demo.models.BookRequest;
+import com.example.demo.models.ElementRequest;
 import com.example.demo.models.RequestStatus;
 import com.example.demo.observers.AllBooksSubject;
 import com.example.demo.persistence.AuthorsCrudRepository;
@@ -97,5 +100,24 @@ public class BooksController {
     public ResponseEntity<Void> deleteBook(@PathVariable Integer id) {
         boolean deleted = syncExecutor.execute(new DeleteBookCommand(booksRepository, id)).join();
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    // adauga continut (paragraf, imagine, tabel, sectiune, cuprins) in carte sau intr-o sectiune
+    @PostMapping("/{id}/elements")
+    public ResponseEntity<?> addElement(@PathVariable Integer id, @RequestBody ElementRequest request) {
+        try {
+            return syncExecutor.execute(new AddElementCommand(booksRepository, id, request)).join()
+                    .<ResponseEntity<?>>map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}/elements/{elementId}")
+    public ResponseEntity<Book> removeElement(@PathVariable Integer id, @PathVariable Integer elementId) {
+        return syncExecutor.execute(new RemoveElementCommand(booksRepository, id, elementId)).join()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
