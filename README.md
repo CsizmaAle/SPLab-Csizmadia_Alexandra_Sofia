@@ -19,6 +19,8 @@ cd demo
 
 The app starts on `http://localhost:8080`. Stop it with `Ctrl + C`.
 
+Graphical interface for books: `http://localhost:8080/books.html` (list, search, details, add, edit, delete).
+
 Each request is logged (before and after processing) to `demo/logs/requests.log`.
 
 
@@ -32,6 +34,10 @@ Each request is logged (before and after processing) to `demo/logs/requests.log`
 | GET | `/books/requests/{requestId}` | status of an async request (`PENDING` / `DONE` / `FAILED`) |
 | PUT | `/books/{id}` | changes the title and authors |
 | DELETE | `/books/{id}` | deletes a book |
+| POST | `/books/{id}/elements` | adds content: `{"type":"Paragraph","text":"...","parentId":null}` (type: `Section`, `Paragraph`, `Image`, `Table`; `parentId` = section id, or `null` for the book itself) |
+| DELETE | `/books/{id}/elements/{elementId}` | removes an element (and everything inside it); the table of contents can't be removed |
+
+Every book has exactly one table of contents, always as its first element: new books get it when they are created, and books already in the database are fixed when the app starts.
 
 Example:
 

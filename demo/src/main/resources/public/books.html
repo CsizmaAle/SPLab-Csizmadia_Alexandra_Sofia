@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biblioteca</title>
+<style>
+    :root {
+        --bg: #f6f3ee;
+        --panel: #ffffff;
+        --text: #2b2724;
+        --muted: #7a726a;
+        --line: #e4ddd3;
+        --accent: #8a4b2a;
+        --accent-soft: #f3e6dc;
+        --danger: #b3261e;
+        --ok: #2e7d32;
+        --radius: 10px;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --bg: #1c1a18;
+            --panel: #262320;
+            --text: #ece6df;
+            --muted: #a39a90;
+            --line: #3a3531;
+            --accent: #e0a07a;
+            --accent-soft: #3a2c23;
+            --danger: #ef7b72;
+            --ok: #81c784;
+        }
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+    }
+    header h1 { margin: 0; font-size: 22px; font-family: Georgia, serif; }
+    header span { color: var(--muted); }
+
+    main {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 20px;
+        padding: 20px 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    @media (max-width: 800px) {
+        main { grid-template-columns: 1fr; padding: 16px; }
+    }
+
+    .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 16px;
+    }
+    .panel + .panel { margin-top: 16px; }
+    h2 { margin: 0 0 12px; font-size: 15px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+
+    label { display: block; font-size: 13px; color: var(--muted); margin: 8px 0 4px; }
+    input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--bg);
+        color: var(--text);
+        font: inherit;
+    }
+    input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+    button {
+        font: inherit;
+        padding: 7px 14px;
+        border-radius: 6px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+    }
+    button.secondary { background: transparent; color: var(--accent); }
+    button.danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+    button:disabled { opacity: .5; cursor: default; }
+    .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+    #bookList { list-style: none; margin: 0; padding: 0; }
+    #bookList li {
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+    #bookList li:hover { background: var(--accent-soft); }
+    #bookList li.selected { background: var(--accent-soft); border-color: var(--accent); }
+    #bookList .title { font-weight: 600; }
+    #bookList .authors { font-size: 13px; color: var(--muted); }
+    .empty { color: var(--muted); font-style: italic; }
+
+    /* detaliile cartii */
+    .book-title { font-family: Georgia, serif; font-size: 28px; margin: 0 0 4px; }
+    .meta { color: var(--muted); margin-bottom: 20px; }
+    .meta b { color: var(--text); font-weight: 500; }
+    .content { border-top: 1px solid var(--line); padding-top: 12px; }
+    .content h3, .content h4, .content h5, .content h6 { font-family: Georgia, serif; margin: 18px 0 6px; }
+    .content p { margin: 6px 0; }
+    .content .nested { padding-left: 16px; border-left: 2px solid var(--line); }
+    .box {
+        border: 1px dashed var(--line);
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin: 8px 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+    .box .label { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+    .toc ol { margin: 6px 0 0; padding-left: 20px; color: var(--text); }
+    .box img { display: block; max-width: 100%; max-height: 360px; border-radius: 4px; margin-top: 6px; }
+
+    /* fiecare element are un buton de stergere, vizibil la hover */
+    .item { position: relative; padding-right: 28px; }
+    .item > .del {
+        position: absolute;
+        top: 2px;
+        right: 0;
+        padding: 0 7px;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.4;
+        opacity: 0;
+    }
+    .item:hover > .del, .item > .del:focus { opacity: 1; }
+    .item > .del:hover { color: var(--danger); }
+    @media (hover: none) { .item > .del { opacity: 1; } }
+
+    .add-content {
+        margin-top: 24px;
+        padding: 14px;
+        border-radius: 8px;
+        background: var(--accent-soft);
+    }
+    .add-content h2 { margin-bottom: 4px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > div { flex: 1 1 180px; }
+    select, textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+    }
+    textarea { resize: vertical; }
+
+    #toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 16px;
+        border-radius: 8px;
+        background: var(--text);
+        color: var(--bg);
+        opacity: 0;
+        transition: opacity .2s;
+        pointer-events: none;
+        max-width: calc(100% - 40px);
+    }
+    #toast.show { opacity: 1; }
+    #toast.error { background: var(--danger); color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Biblioteca</h1>
+    <span id="count"></span>
+</header>
+
+<main>
+    <aside>
+        <section class="panel">
+            <h2>Adaugă carte</h2>
+            <form id="createForm">
+                <label for="newTitle">Titlu</label>
+                <input id="newTitle" required placeholder="ex. Carte 1">
+                <label for="newAuthors">Autori (separați prin virgulă)</label>
+                <input id="newAuthors" placeholder="ex. Ana Popescu, Ion Ionescu">
+                <div class="actions">
+                    <button type="submit" id="createBtn">Adaugă</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Cărți</h2>
+            <input id="search" placeholder="Caută după titlu sau autor…">
+            <ul id="bookList" style="margin-top: 10px"></ul>
+        </section>
+    </aside>
+
+    <section class="panel" id="details">
+        <p class="empty">Alege o carte din listă.</p>
+    </section>
+</main>
+
+<div id="toast"></div>
+
+<script>
+    let books = [];
+    let selectedId = null;
+
+    // ---------- utilitare ----------
+
+    function el(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        // textContent (nu innerHTML), ca textul introdus sa nu fie interpretat ca HTML
+        if (text !== undefined && text !== null) node.textContent = text;
+        return node;
+    }
+
+    let toastTimer = null;
+    function toast(message, isError = false) {
+        const t = document.getElementById("toast");
+        t.textContent = message;
+        t.className = "show" + (isError ? " error" : "");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.className = "", 3000);
+    }
+
+    function authorNames(book) {
+        return (book.authors || []).map(a => a.name).join(", ");
+    }
+
+    function parseAuthors(text) {
+        return text.split(",").map(s => s.trim()).filter(s => s.length > 0);
+    }
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    // ---------- apeluri catre server ----------
+
+    async function loadBooks() {
+        const res = await fetch("/books");
+        if (!res.ok) throw new Error("GET /books a eșuat (" + res.status + ")");
+        books = await res.json();
+        renderList();
+        if (selectedId !== null && !books.some(b => b.id === selectedId)) {
+            selectedId = null;
+        }
+        renderDetails();
+    }
+
+    // POST e asincron: serverul raspunde cu 202 + requestId, apoi verificam starea pana e gata
+    async function createBook(title, authors) {
+        const res = await fetch("/books", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, authors })
+        });
+        if (res.status !== 202) throw new Error("POST /books a eșuat (" + res.status + ")");
+        const { requestId } = await res.json();
+
+        while (true) {
+            await sleep(700);
+            const statusRes = await fetch("/books/requests/" + requestId);
+            const status = await statusRes.json();
+            if (status.status === "DONE") return status.result;
+            if (status.status === "FAILED") throw new Error(status.error || "Crearea cărții a eșuat");
+        }
+    }
+
+    async function updateBook(id, title, authors) {
+        const res = await fetch("/books/" + id, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, authors })
+        });
+        if (!res.ok) throw new Error("PUT a eșuat (" + res.status + ")");
+    }
+
+    async function deleteBook(id) {
+        const res = await fetch("/books/" + id, { method: "DELETE" });
+        if (!res.ok) throw new Error("DELETE a eșuat (" + res.status + ")");
+    }
+
+    // serverul raspunde cu cartea actualizata
+    async function addElement(bookId, type, text, parentId) {
+        const res = await fetch("/books/" + bookId + "/elements", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type, text, parentId })
+        });
+        if (!res.ok) throw new Error("Adăugarea a eșuat (" + res.status + ")");
+        return res.json();
+    }
+
+    async function removeElement(bookId, elementId) {
+        const res = await fetch("/books/" + bookId + "/elements/" + elementId, { method: "DELETE" });
+        if (!res.ok) throw new Error("Ștergerea a eșuat (" + res.status + ")");
+        return res.json();
+    }
+
+    // inlocuieste cartea din lista locala cu versiunea primita de la server
+    function replaceBook(updated) {
+        books = books.map(b => b.id === updated.id ? updated : b);
+        renderList();
+        renderDetails();
+    }
+
+    // ---------- lista de carti ----------
+
+    function renderList() {
+        const query = document.getElementById("search").value.trim().toLowerCase();
+        const list = document.getElementById("bookList");
+        list.innerHTML = "";
+
+        document.getElementById("count").textContent =
+            books.length === 1 ? "1 carte" : books.length + " cărți";
+
+        const visible = books.filter(b =>
+            (b.title || "").toLowerCase().includes(query) ||
+            authorNames(b).toLowerCase().includes(query));
+
+        if (visible.length === 0) {
+            list.appendChild(el("li", "empty", books.length === 0 ? "Nu există cărți." : "Nimic găsit."));
+            return;
+        }
+
+        for (const book of visible) {
+            const li = el("li", book.id === selectedId ? "selected" : "");
+            li.appendChild(el("div", "title", book.title || "(fără titlu)"));
+            li.appendChild(el("div", "authors", authorNames(book) || "fără autori"));
+            li.onclick = () => { selectedId = book.id; renderList(); renderDetails(); };
+            list.appendChild(li);
+        }
+    }
+
+    // ---------- detaliile unei carti ----------
+
+    function renderDetails() {
+        const details = document.getElementById("details");
+        details.innerHTML = "";
+
+        const book = books.find(b => b.id === selectedId);
+        if (!book) {
+            details.appendChild(el("p", "empty", "Alege o carte din listă."));
+            return;
+        }
+
+        details.appendChild(el("h2", null, "Carte #" + book.id));
+        details.appendChild(el("h1", "book-title", book.title || "(fără titlu)"));
+
+        const meta = el("div", "meta");
+        meta.append("de ", el("b", null, authorNames(book) || "autor necunoscut"));
+        if (book.isbn) meta.append(" · ISBN ", el("b", null, book.isbn));
+        details.appendChild(meta);
+
+        const actions = el("div", "actions");
+        const editBtn = el("button", "secondary", "Editează");
+        editBtn.onclick = () => renderEditForm(book);
+        const delBtn = el("button", "danger", "Șterge");
+        delBtn.onclick = async () => {
+            if (!confirm("Ștergi cartea „" + book.title + "”?")) return;
+            try {
+                await deleteBook(book.id);
+                selectedId = null;
+                toast("Cartea a fost ștearsă.");
+                await loadBooks();
+            } catch (e) {
+                toast(e.message, true);
+            }
+        };
+        actions.append(editBtn, delBtn);
+        details.appendChild(actions);
+
+        const content = el("div", "content");
+        content.style.marginTop = "20px";
+        if (!book.children || book.children.length === 0) {
+            content.appendChild(el("p", "empty", "Cartea nu are conținut."));
+        } else {
+            for (const child of book.children) {
+                content.appendChild(renderItem(child, book, 0));
+            }
+        }
+        details.appendChild(content);
+        details.appendChild(renderAddForm(book));
+    }
+
+    // Elementul + butonul lui de stergere
+    function renderItem(element, book, depth) {
+        const item = el("div", "item");
+        item.appendChild(renderElement(element, book, depth));
+
+        // cuprinsul e automat si nu se poate sterge
+        if (element.type === "TableOfContents") return item;
+
+        const del = el("button", "del", "×");
+        del.type = "button";
+        del.title = "Șterge";
+        del.onclick = async () => {
+            const question = element.type === "Section"
+                ? "Ștergi „" + element.title + "” și tot ce conține?"
+                : "Ștergi acest element?";
+            if (!confirm(question)) return;
+            try {
+                replaceBook(await removeElement(book.id, element.id));
+            } catch (e) {
+                toast(e.message, true);
+            }
+        };
+        item.appendChild(del);
+        return item;
+    }
+
+    // Deseneaza un element din structura cartii (Composite) in functie de "type"
+    function renderElement(element, book, depth) {
+        switch (element.type) {
+            case "Section": {
+                const wrap = el("div", depth > 0 ? "nested" : "");
+                const level = Math.min(3 + depth, 6);
+                wrap.appendChild(el("h" + level, null, element.title));
+                for (const child of element.children || []) {
+                    wrap.appendChild(renderItem(child, book, depth + 1));
+                }
+                return wrap;
+            }
+            case "Paragraph":
+                return el("p", null, element.text);
+            case "Image":
+            case "ImageProxy": {
+                const box = el("div", "box");
+                box.append(el("div", "label", "Imagine"));
+                // daca e un link web, afisam imaginea; altfel doar numele
+                if (/^https?:\/\//i.test(element.url || "")) {
+                    const img = el("img");
+                    img.src = element.url;
+                    img.alt = element.url;
+                    img.onerror = () => img.replaceWith(el("div", null, element.url + " (nu s-a putut încărca)"));
+                    box.appendChild(img);
+                } else {
+                    box.appendChild(el("div", null, element.url));
+                }
+                return box;
+            }
+            case "Table": {
+                const box = el("div", "box");
+                box.append(el("div", "label", "Tabel"), el("div", null, element.title));
+                return box;
+            }
+            case "TableOfContents": {
+                const box = el("div", "box toc");
+                box.appendChild(el("div", "label", element.title || "Cuprins"));
+                const ol = el("ol");
+                for (const section of (book.children || []).filter(c => c.type === "Section")) {
+                    ol.appendChild(el("li", null, section.title));
+                }
+                box.appendChild(ol);
+                return box;
+            }
+            default: {
+                const box = el("div", "box");
+                box.append(el("div", "label", element.type || "Element"));
+                return box;
+            }
+        }
+    }
+
+    // ---------- adaugare continut ----------
+
+    const ELEMENT_TYPES = {
+        Paragraph:       { name: "Paragraf",          field: "Text",              placeholder: "Scrie textul paragrafului…" },
+        Image:           { name: "Imagine",           field: "URL sau nume imagine", placeholder: "ex. https://…/poza.jpg" },
+        Section:         { name: "Capitol / secțiune", field: "Titlu",             placeholder: "ex. Capitolul 3" },
+        Table:           { name: "Tabel",             field: "Titlu tabel",       placeholder: "ex. Tabel 2" }
+        // cuprinsul nu apare aici: serverul il pune automat la inceputul fiecarei carti
+    };
+
+    // ultimele alegeri, ca sa poti adauga mai multe paragrafe la rand in acelasi capitol
+    let lastType = "Paragraph";
+    let lastParent = "";
+
+    // toate sectiunile din carte (inclusiv subcapitolele), pentru lista "Unde"
+    function collectSections(elements, depth, out) {
+        for (const e of elements || []) {
+            if (e.type === "Section") {
+                out.push({ id: e.id, title: e.title, depth });
+                collectSections(e.children, depth + 1, out);
+            }
+        }
+        return out;
+    }
+
+    function renderAddForm(book) {
+        const box = el("form", "add-content");
+        box.appendChild(el("h2", null, "Adaugă conținut"));
+
+        const row = el("div", "row");
+
+        const typeWrap = el("div");
+        typeWrap.appendChild(el("label", null, "Ce adaugi"));
+        const typeSelect = el("select");
+        for (const [value, info] of Object.entries(ELEMENT_TYPES)) {
+            const opt = el("option", null, info.name);
+            opt.value = value;
+            typeSelect.appendChild(opt);
+        }
+        typeSelect.value = lastType;
+        typeWrap.appendChild(typeSelect);
+
+        const parentWrap = el("div");
+        parentWrap.appendChild(el("label", null, "Unde"));
+        const parentSelect = el("select");
+        const rootOpt = el("option", null, "Direct în carte (la final)");
+        rootOpt.value = "";
+        parentSelect.appendChild(rootOpt);
+        for (const s of collectSections(book.children, 0, [])) {
+            const opt = el("option", null, "  ".repeat(s.depth) + "în „" + s.title + "”");
+            opt.value = String(s.id);
+            parentSelect.appendChild(opt);
+        }
+        parentSelect.value = [...parentSelect.options].some(o => o.value === lastParent) ? lastParent : "";
+        parentWrap.appendChild(parentSelect);
+
+        row.append(typeWrap, parentWrap);
+        box.appendChild(row);
+
+        const textLabel = el("label");
+        const textInput = el("textarea");
+        textInput.rows = 3;
+        box.append(textLabel, textInput);
+
+        function updateLabels() {
+            const info = ELEMENT_TYPES[typeSelect.value];
+            textLabel.textContent = info.field;
+            textInput.placeholder = info.placeholder;
+            textInput.rows = typeSelect.value === "Paragraph" ? 3 : 1;
+        }
+        typeSelect.onchange = updateLabels;
+        updateLabels();
+
+        const actions = el("div", "actions");
+        const addBtn = el("button", null, "Adaugă");
+        addBtn.type = "submit";
+        actions.appendChild(addBtn);
+        box.appendChild(actions);
+
+        box.onsubmit = async (e) => {
+            e.preventDefault();
+            const type = typeSelect.value;
+            const text = textInput.value.trim();
+            if (!text) {
+                toast("Completează câmpul „" + ELEMENT_TYPES[type].field + "”.", true);
+                return;
+            }
+            lastType = type;
+            lastParent = parentSelect.value;
+            addBtn.disabled = true;
+            try {
+                const parentId = parentSelect.value === "" ? null : Number(parentSelect.value);
+                replaceBook(await addElement(book.id, type, text, parentId));
+                toast(ELEMENT_TYPES[type].name + " adăugat.");
+                // dupa re-desenare, cursorul ramane in campul de text pentru urmatorul element
+                document.querySelector(".add-content textarea")?.focus();
+            } catch (err) {
+                toast(err.message, true);
+                addBtn.disabled = false;
+            }
+        };
+
+        return box;
+    }
+
+    function renderEditForm(book) {
+        const details = document.getElementById("details");
+        details.innerHTML = "";
+        details.appendChild(el("h2", null, "Editează cartea #" + book.id));
+
+        const form = el("form");
+        form.appendChild(el("label", null, "Titlu"));
+        const titleInput = el("input");
+        titleInput.value = book.title || "";
+        titleInput.required = true;
+        form.appendChild(titleInput);
+
+        form.appendChild(el("label", null, "Autori (separați prin virgulă)"));
+        const authorsInput = el("input");
+        authorsInput.value = authorNames(book);
+        form.appendChild(authorsInput);
+
+        const actions = el("div", "actions");
+        const saveBtn = el("button", null, "Salvează");
+        saveBtn.type = "submit";
+        const cancelBtn = el("button", "secondary", "Renunță");
+        cancelBtn.type = "button";
+        cancelBtn.onclick = renderDetails;
+        actions.append(saveBtn, cancelBtn);
+        form.appendChild(actions);
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            saveBtn.disabled = true;
+            try {
+                await updateBook(book.id, titleInput.value.trim(), parseAuthors(authorsInput.value));
+                toast("Modificările au fost salvate.");
+                await loadBooks();
+            } catch (err) {
+                toast(err.message, true);
+                saveBtn.disabled = false;
+            }
+        };
+
+        details.appendChild(form);
+        titleInput.focus();
+    }
+
+    // ---------- evenimente ----------
+
+    document.getElementById("search").addEventListener("input", renderList);
+
+    document.getElementById("createForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const titleInput = document.getElementById("newTitle");
+        const authorsInput = document.getElementById("newAuthors");
+        const btn = document.getElementById("createBtn");
+
+        btn.disabled = true;
+        btn.textContent = "Se salvează…";
+        try {
+            const created = await createBook(titleInput.value.trim(), parseAuthors(authorsInput.value));
+            titleInput.value = "";
+            authorsInput.value = "";
+            selectedId = created ? created.id : selectedId;
+            toast("Cartea a fost adăugată.");
+            await loadBooks();
+        } catch (err) {
+            toast(err.message, true);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Adaugă";
+        }
+    });
+
+    loadBooks().catch(e => toast(e.message, true));
+</script>
+
+</body>
+</html>
