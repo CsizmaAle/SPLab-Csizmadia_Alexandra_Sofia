@@ -1,0 +1,35 @@
+CYBER AWARENESS HUB
+
+O aplicatie care te ajuta sa intri in lumea cybersec si sa ramai la curent cu ce se
+intampla: ce grupari de hackeri exista, ce malware au folosit in cele mai mari atacuri
+(WannaCry, NotPetya, Stuxnet...), ce tehnici de atac exista si ce stiri noi apar.
+
+Aplicatia are doua parti:
+  1. Enciclopedie - date reale importate din MITRE ATT&CK: grupari, software (malware +
+     unelte), tehnici, tactici si relatiile dintre ele ("Lazarus foloseste WannaCry").
+  2. Stiri - stiri de cybersec aduse de pe internet (RSS), pe care le salvezi in arbore
+     si pe care iti pui notite.
+
+Partea de arbore
+
+Datele se pot vedea in doua feluri:
+- pe grupari: Grupare -> Software (malware / unelte) -> Tehnica
+- pe tactici: Tactica -> Tehnica -> Sub-tehnica
+
+La orice nod se pot adauga stiri salvate, notite, imagini sau informatii despre impact
+(pagube, numar de victime), pentru ca MITRE nu are datele astea.
+
+Ce se poate face:
+- add: stiri, notite, imagini, impact, dar si grupari sau malware noi care nu sunt in MITRE.
+  Datele importate din MITRE nu se modifica.
+- view: navigare prin arbore si detaliile fiecarui nod
+- summary: statistici pe un nod si tot ce e sub el, de ex. cate tehnici foloseste o grupare,
+  cate stiri si notite sunt salvate la ea
+- search: cautare prin tot (grupari, malware, tehnici, stiri, notite)
+- stirile noi apar in pagina fara refresh, iar daca o stire pomeneste ceva ce exista deja in
+  arbore (de ex. "Lazarus"), aplicatia sugereaza unde sa fie salvata
+
+Tehnic: REST API in Spring Boot, o baza de date, o interfata web simpla, si cate un branch
+pentru fiecare functionalitate.
+
+
