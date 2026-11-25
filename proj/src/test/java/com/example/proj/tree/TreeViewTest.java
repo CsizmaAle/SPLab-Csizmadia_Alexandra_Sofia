@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TreeViewTest {
     @Autowired MitreImportService importer;
     @Autowired @Qualifier("groups") TreeView groups;
+    @Autowired @Qualifier("tactics") TreeView tactics;
     @Autowired NodeRepository nodes;
     @Autowired RelationRepository relations;
 
@@ -39,5 +40,18 @@ class TreeViewTest {
         link(ext("G0032"), "Alfa", RelationKind.ATTACHED);
         link(ext("G0032"), "Sugestie", RelationKind.SUGGESTED);
         assertThat(groups.children(ext("G0032"))).extracting(Node::getName).containsExactly("Alfa", "WannaCry", "Zeta");
+    }
+
+    @Test void tacticsView() {
+        assertThat(tactics.roots()).extracting(Node::getName).containsExactly("Execution", "Impact");
+        assertThat(tactics.children(ext("TA0002"))).extracting(Node::getExternalId).containsExactly("T1059");
+        assertThat(tactics.children(ext("T1059"))).extracting(Node::getExternalId).containsExactly("T1059.001");
+        assertThat(tactics.children(ext("S0366"))).isEmpty(); // USES tine de vederea pe grupari
+    }
+
+    @Test void attachedNodesShowInBothViews() {
+        link(ext("T1486"), "nota", RelationKind.ATTACHED);
+        assertThat(groups.children(ext("T1486"))).extracting(Node::getName).containsExactly("nota");
+        assertThat(tactics.children(ext("T1486"))).extracting(Node::getName).containsExactly("nota");
     }
 }
