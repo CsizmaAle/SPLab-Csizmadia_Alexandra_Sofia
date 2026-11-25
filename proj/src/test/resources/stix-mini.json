@@ -1,0 +1,36 @@
+{
+  "type": "bundle",
+  "id": "bundle--1",
+  "objects": [
+    {"type": "intrusion-set", "id": "intrusion-set--1", "name": "Lazarus Group", "description": "North Korean state-sponsored group.",
+      "external_references": [{"source_name": "mitre-attack", "external_id": "G0032", "url": "https://attack.mitre.org/groups/G0032"}]},
+    {"type": "malware", "id": "malware--1", "name": "WannaCry", "description": "Ransomware used in a global attack in May 2017.",
+      "external_references": [{"source_name": "mitre-attack", "external_id": "S0366", "url": "https://attack.mitre.org/software/S0366"}]},
+    {"type": "tool", "id": "tool--1", "name": "Mimikatz", "description": "Credential dumper.",
+      "external_references": [{"source_name": "mitre-attack", "external_id": "S0002", "url": "https://attack.mitre.org/software/S0002"}]},
+    {"type": "attack-pattern", "id": "attack-pattern--1", "name": "Data Encrypted for Impact", "description": "Adversaries may encrypt data on target systems.",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "impact"}],
+      "external_references": [
+        {"source_name": "capec", "external_id": "CAPEC-1", "url": "https://example.com/capec-1"},
+        {"source_name": "mitre-attack", "external_id": "T1486", "url": "https://attack.mitre.org/techniques/T1486"}]},
+    {"type": "attack-pattern", "id": "attack-pattern--2", "name": "Command and Scripting Interpreter", "description": "Adversaries may abuse command and script interpreters.",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "execution"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1059", "url": "https://attack.mitre.org/techniques/T1059"}]},
+    {"type": "attack-pattern", "id": "attack-pattern--3", "name": "PowerShell", "description": "Adversaries may abuse PowerShell.", "x_mitre_is_subtechnique": true,
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "execution"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1059.001", "url": "https://attack.mitre.org/techniques/T1059/001"}]},
+    {"type": "x-mitre-tactic", "id": "x-mitre-tactic--1", "name": "Impact", "description": "Manipulate, interrupt or destroy systems and data.", "x_mitre_shortname": "impact",
+      "external_references": [{"source_name": "mitre-attack", "external_id": "TA0040", "url": "https://attack.mitre.org/tactics/TA0040"}]},
+    {"type": "x-mitre-tactic", "id": "x-mitre-tactic--2", "name": "Execution", "description": "Run malicious code.", "x_mitre_shortname": "execution",
+      "external_references": [{"source_name": "mitre-attack", "external_id": "TA0002", "url": "https://attack.mitre.org/tactics/TA0002"}]},
+    {"type": "intrusion-set", "id": "intrusion-set--2", "name": "Old Group", "revoked": true,
+      "external_references": [{"source_name": "mitre-attack", "external_id": "G9999", "url": "https://attack.mitre.org/groups/G9999"}]},
+    {"type": "tool", "id": "tool--2", "name": "Old Tool", "x_mitre_deprecated": true,
+      "external_references": [{"source_name": "mitre-attack", "external_id": "S9999", "url": "https://attack.mitre.org/software/S9999"}]},
+    {"type": "relationship", "id": "relationship--1", "relationship_type": "uses", "source_ref": "intrusion-set--1", "target_ref": "malware--1"},
+    {"type": "relationship", "id": "relationship--2", "relationship_type": "uses", "source_ref": "malware--1", "target_ref": "attack-pattern--1"},
+    {"type": "relationship", "id": "relationship--3", "relationship_type": "uses", "source_ref": "intrusion-set--1", "target_ref": "attack-pattern--1"},
+    {"type": "relationship", "id": "relationship--4", "relationship_type": "uses", "source_ref": "intrusion-set--2", "target_ref": "tool--1"},
+    {"type": "relationship", "id": "relationship--5", "relationship_type": "subtechnique-of", "source_ref": "attack-pattern--3", "target_ref": "attack-pattern--2"}
+  ]
+}
