@@ -2,6 +2,7 @@ package com.example.proj.mitre;
 
 import com.example.proj.model.Node;
 import com.example.proj.model.NodeType;
+import com.example.proj.model.RelationKind;
 import com.example.proj.model.Source;
 import org.junit.jupiter.api.Test;
 import java.util.Map;
@@ -21,5 +22,14 @@ class MitreStixAdapterTest {
         assertThat(byId().get("G0032").getSource()).isEqualTo(Source.MITRE);
         assertThat(byId().get("T1486").getText()).contains("encrypt");
         assertThat(byId().get("T1486").getUrl()).isEqualTo("https://attack.mitre.org/techniques/T1486");
+    }
+
+    @Test void mapsLinks() {
+        assertThat(data.links()).containsExactlyInAnyOrder(
+            new MitreData.Link("G0032", "S0366", RelationKind.USES),
+            new MitreData.Link("S0366", "T1486", RelationKind.USES),
+            new MitreData.Link("T1059", "T1059.001", RelationKind.SUBTECHNIQUE),
+            new MitreData.Link("TA0040", "T1486", RelationKind.IN_TACTIC),
+            new MitreData.Link("TA0002", "T1059", RelationKind.IN_TACTIC));
     }
 }
