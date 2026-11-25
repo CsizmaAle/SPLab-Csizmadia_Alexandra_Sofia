@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,5 +54,26 @@ class TreeViewTest {
         link(ext("T1486"), "nota", RelationKind.ATTACHED);
         assertThat(groups.children(ext("T1486"))).extracting(Node::getName).containsExactly("nota");
         assertThat(tactics.children(ext("T1486"))).extracting(Node::getName).containsExactly("nota");
+    }
+
+    @Test void subtreeFollowsView() {
+        TreeNode t = groups.subtree(ext("G0032"));
+        assertThat(t.children()).extracting(c -> c.node().getName()).containsExactly("WannaCry");
+        assertThat(t.children().getFirst().children()).extracting(c -> c.node().getExternalId()).containsExactly("T1486");
+    }
+
+    @Test void subtreeStopsOnCycle() {
+        relations.save(new Relation(ext("T1486"), ext("G0032"), RelationKind.ATTACHED));
+        TreeNode technique = groups.subtree(ext("G0032")).children().getFirst().children().getFirst();
+        assertThat(technique.children()).containsExactly(new TreeNode(ext("G0032"), List.of()));
+    }
+
+    @Test void sharedNodeIsExpandedOnlyOnce() {
+        relations.save(new Relation(ext("G0032"), ext("S0002"), RelationKind.USES));
+        relations.save(new Relation(ext("S0002"), ext("T1486"), RelationKind.USES));
+        link(ext("T1486"), "nota", RelationKind.ATTACHED);
+        List<TreeNode> software = groups.subtree(ext("G0032")).children(); // Mimikatz, WannaCry
+        assertThat(software.get(0).children().getFirst().children()).hasSize(1);
+        assertThat(software.get(1).children()).containsExactly(new TreeNode(ext("T1486"), List.of()));
     }
 }
