@@ -4,14 +4,14 @@ import com.example.proj.model.Node;
 import com.example.proj.persistence.NodeRepository;
 import com.example.proj.tree.TreeView;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.example.proj.controllers.Found.found;
 
 @RestController
 public class TreeController {
@@ -28,6 +28,4 @@ public class TreeController {
     public Node node(@PathVariable Long id) { return found(nodes.findById(id)); }
 
     private TreeView view(String name) { return found(Optional.ofNullable(views.get(name))); }
-
-    private static <T> T found(Optional<T> o) { return o.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)); }
 }

@@ -15,4 +15,5 @@ public interface RelationRepository extends JpaRepository<Relation, Long> {
     @Query("select r.child from Relation r where r.parent.id = :parentId and r.kind in :kinds order by r.child.name")
     List<Node> findChildren(Long parentId, Collection<RelationKind> kinds);
     void deleteByKindIn(Collection<RelationKind> kinds);
+    void deleteByParentIdOrChildId(Long parentId, Long childId);
 }
