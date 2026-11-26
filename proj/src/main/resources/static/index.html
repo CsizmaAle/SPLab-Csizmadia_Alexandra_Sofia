@@ -11,6 +11,7 @@
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 20px; background: var(--ink); color: #fff; }
   h1 { margin: 0; font-size: 20px; font-weight: 600; }
   h2 { margin: 0 0 8px; font-size: 16px; }
+  h3 { margin: 0; font-size: 15px; }
   #search { flex: 1; }
   #status { font-size: 14px; }
   #status.DONE { color: #8fe0b0; }
@@ -36,6 +37,16 @@
   .GROUP { --type: #b3261e; } .SOFTWARE { --type: #d97a00; } .TECHNIQUE { --type: #0b7fab; } .TACTIC { --type: #5a3e9b; }
   .NEWS { --type: #1e7a46; } .NOTE { --type: #e0b400; } .IMAGE { --type: #c2558f; } .IMPACT { --type: #16283c; }
   .text { max-width: 75ch; white-space: pre-line; }
+  .sticky { max-width: 40ch; padding: 12px 16px; background: #fff3a3; box-shadow: 3px 4px 0 #e2cf62; transform: rotate(-1deg); white-space: pre-line; }
+  .impact { font-size: 22px; font-weight: 600; }
+  #details img { display: block; max-width: 100%; max-height: 320px; }
+  .danger { background: #b3261e; }
+  form { display: grid; gap: 8px; }
+  .add { max-width: 75ch; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .add button { justify-self: start; }
+  #newGroup { grid-template-columns: 1fr auto; margin-bottom: 12px; }
+  label { display: grid; gap: 2px; color: var(--muted); font-size: 14px; }
+  input, select, textarea { min-width: 0; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; color: var(--ink); font: inherit; }
   @media (max-width: 800px) {
     body { height: auto; }
     main { grid-template-columns: 1fr; }
@@ -54,11 +65,23 @@
   <section id="tree">
     <h2>Arbore</h2>
     <p class="views"><button data-view="groups">Grupari</button> <button data-view="tactics">Tactici</button></p>
+    <form id="newGroup"><input name="name" required maxlength="255" placeholder="Nume" aria-label="Numele gruparii noi"><button>Grupare noua</button></form>
     <ul id="roots"></ul>
   </section>
   <section id="details"><h2>Detalii</h2><p class="empty">Alege un nod din arbore.</p></section>
   <section id="news"><h2>Stiri</h2><p class="empty">Nicio stire inca.</p></section>
 </main>
+<template id="addForm">
+  <form class="add">
+    <h3>Adauga la acest nod</h3>
+    <label>Tip <select name="type"></select></label>
+    <label>Nume <input name="name" required maxlength="255"></label>
+    <label>Text <textarea name="text" rows="3" maxlength="20000"></textarea></label>
+    <label>Link sau adresa imaginii <input name="url" type="url" maxlength="255"></label>
+    <label>Valoare <input name="value" type="number" step="any"></label>
+    <button>Adauga</button>
+  </form>
+</template>
 <script>
 const $ = id => document.getElementById(id);
 const el = (tag, props, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
@@ -71,11 +94,15 @@ function say(text, status) {
 }
 addEventListener('unhandledrejection', e => say('Eroare: ' + e.reason.message, 'FAILED'));
 
-async function api(url, method = 'GET') {
-  const r = await fetch(url, { method });
-  if (!r.ok) throw new Error(`${url}: ${r.status}`);
-  return r.json();
+async function api(url, method = 'GET', body) {
+  const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body && JSON.stringify(body) });
+  // detail = motivul trimis de server (ex. 409), daca exista
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail ?? `${url}: ${r.status}`);
+  return r.status === 204 ? null : r.json();
 }
+
+// campurile goale devin null, valoarea devine numar
+const fields = form => Object.fromEntries([...new FormData(form)].map(([k, v]) => [k, v === '' ? null : k === 'value' ? Number(v) : v]));
 
 // porneste o comanda asincrona si asteapta pana nu mai e PENDING
 async function track(url, show) {
@@ -107,29 +134,68 @@ function item(n) {
   const button = el('button', { className: 'node ' + n.type, title: TYPES[n.type], textContent: n.name, ariaExpanded: false });
   const li = el('li', {}, button);
   button.dataset.id = n.id;
-  button.onclick = async () => {
+  button.onclick = () => {
     select(n.id);
     const open = li.querySelector('ul');
-    button.ariaExpanded = !open;
-    if (open) return open.remove();
-    const ul = li.appendChild(el('ul'));
-    ul.append(...(await api(`/tree/${view}/${n.id}/children`)).map(item));
+    if (!open) return expand(li, n.id);
+    button.ariaExpanded = false;
+    open.remove();
   };
   return li;
 }
+
+async function expand(li, id) {
+  li.querySelector('ul')?.remove();
+  li.firstChild.ariaExpanded = true;
+  const ul = li.appendChild(el('ul'));
+  ul.append(...(await api(`/tree/${view}/${id}/children`)).map(item));
+}
+
+// reincarca copiii nodului oriunde apare in arbore
+const refresh = id => document.querySelectorAll(`.node[data-id="${id}"]`).forEach(b => expand(b.parentElement, id));
 
 async function select(id) {
   selected = id;
   document.querySelectorAll('.node').forEach(b => b.classList.toggle('selected', b.dataset.id == id));
   const n = await api('/nodes/' + id);
   if (selected !== id) return; // intre timp s-a ales alt nod
+  const web = /^https?:/i.test(n.url); // doar http(s), ca un url javascript: sa nu fie clicabil
+  const form = $('addForm').content.firstElementChild.cloneNode(true);
+  form.elements.type.append(...['NOTE', 'IMPACT', 'IMAGE', 'NEWS', 'SOFTWARE', 'TECHNIQUE'].map(t => el('option', { value: t, textContent: TYPES[t] })));
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const c = await api(`/nodes/${id}/children`, 'POST', fields(form));
+    form.reset();
+    say('Adaugat: ' + c.name, 'DONE');
+    refresh(id);
+  };
+  const del = el('button', { className: 'danger', textContent: 'Sterge' });
+  del.onclick = async () => {
+    if (!confirm(`Stergi "${n.name}"?`)) return;
+    await api('/nodes/' + id, 'DELETE');
+    document.querySelectorAll(`.node[data-id="${id}"]`).forEach(b => b.parentElement.remove());
+    $('details').replaceChildren(el('h2', { textContent: 'Detalii' }), el('p', { className: 'empty', textContent: 'Alege un nod din arbore.' }));
+    say('Sters: ' + n.name, 'DONE');
+  };
   $('details').replaceChildren(
     el('h2', { textContent: n.name }),
     el('p', { className: 'meta' }, el('span', { className: 'type ' + n.type, textContent: TYPES[n.type] }), `${n.externalId ? ' ' + n.externalId : ''}, sursa ${n.source}`),
-    el('p', { className: 'text', textContent: n.text ?? '' }),
-    // doar http(s), ca un url javascript: sa nu fie clicabil
-    /^https?:/i.test(n.url) ? el('a', { href: n.url, target: '_blank', rel: 'noopener', textContent: n.url }) : '');
+    n.type === 'IMPACT' && n.value != null ? el('p', { className: 'impact', textContent: n.value.toLocaleString('ro-RO') }) : '',
+    n.text ? el('p', { className: n.type === 'NOTE' ? 'sticky' : 'text', textContent: n.text }) : '',
+    n.type === 'IMAGE' && web ? el('img', { src: n.url, alt: n.name }) : '',
+    web ? el('p', {}, el('a', { href: n.url, target: '_blank', rel: 'noopener', textContent: n.url })) : '',
+    n.source === 'CUSTOM' ? del : '',
+    form);
 }
+
+$('newGroup').onsubmit = async e => {
+  e.preventDefault();
+  const g = await api('/nodes', 'POST', { ...fields(e.target), type: 'GROUP' });
+  e.target.reset();
+  say('Adaugat: ' + g.name, 'DONE');
+  await loadTree('groups');
+  select(g.id);
+};
 
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => loadTree(b.dataset.view));
 loadTree('groups');
