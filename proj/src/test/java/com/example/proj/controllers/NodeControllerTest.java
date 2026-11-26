@@ -40,4 +40,14 @@ class NodeControllerTest extends ApiTest {
         String body = "{\"type\":\"NOTE\",\"name\":\"%s\",\"url\":\"%s\",\"text\":\"%s\"}".formatted("n".repeat(255), "u".repeat(255), "t".repeat(20_000));
         mvc.perform(post("/nodes/" + lazarus() + "/children").contentType(APPLICATION_JSON).content(body)).andExpect(status().isCreated());
     }
+
+    @Test void customRootGroupAppearsInView() throws Exception {
+        mvc.perform(post("/nodes").contentType(APPLICATION_JSON).content(json("GROUP", "Grupul meu")))
+           .andExpect(status().isCreated()).andExpect(jsonPath("$.source").value("CUSTOM"));
+        mvc.perform(get("/tree/groups")).andExpect(jsonPath("$[*].name", hasItem("Grupul meu")));
+        mvc.perform(post("/nodes").contentType(APPLICATION_JSON).content(json("TACTIC", "Tactica mea"))).andExpect(status().isCreated());
+        mvc.perform(get("/tree/tactics")).andExpect(jsonPath("$[*].name", hasItem("Tactica mea")));
+        mvc.perform(post("/nodes").contentType(APPLICATION_JSON).content(json("NOTE", "x"))).andExpect(status().isBadRequest());
+        mvc.perform(post("/nodes").contentType(APPLICATION_JSON).content(json("GROUP", " "))).andExpect(status().isBadRequest());
+    }
 }
