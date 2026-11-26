@@ -1,18 +1,27 @@
 package com.example.proj.controllers;
 
 import com.example.proj.ApiTest;
+import com.example.proj.model.Relation;
+import com.example.proj.model.RelationKind;
+import com.example.proj.persistence.RelationRepository;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class NodeControllerTest extends ApiTest {
+    @Autowired RelationRepository relations;
+
     String json(String type, String name) { return "{\"type\":\"%s\",\"name\":\"%s\",\"value\":4000000000}".formatted(type, name); }
     long lazarus() { return nodes.findByExternalId("G0032").orElseThrow().getId(); }
 
@@ -49,5 +58,30 @@ class NodeControllerTest extends ApiTest {
         mvc.perform(get("/tree/tactics")).andExpect(jsonPath("$[*].name", hasItem("Tactica mea")));
         mvc.perform(post("/nodes").contentType(APPLICATION_JSON).content(json("NOTE", "x"))).andExpect(status().isBadRequest());
         mvc.perform(post("/nodes").contentType(APPLICATION_JSON).content(json("GROUP", " "))).andExpect(status().isBadRequest());
+    }
+
+    long create(String url, String type, String name) throws Exception {
+        String body = mvc.perform(post(url).contentType(APPLICATION_JSON).content(json(type, name))).andReturn().getResponse().getContentAsString();
+        return ((Number) JsonPath.read(body, "$.id")).longValue();
+    }
+
+    @Test void deleteRules() throws Exception {
+        long note = create("/nodes/" + lazarus() + "/children", "NOTE", "de sters");
+        mvc.perform(delete("/nodes/" + note)).andExpect(status().isNoContent());
+        mvc.perform(get("/tree/groups/" + lazarus() + "/children")).andExpect(jsonPath("$[*].name", not(hasItem("de sters"))));
+        mvc.perform(get("/nodes/" + note)).andExpect(status().isNotFound());
+
+        mvc.perform(delete("/nodes/" + lazarus())).andExpect(status().isBadRequest());
+
+        long group = create("/nodes", "GROUP", "Grupul meu");
+        long child = create("/nodes/" + group + "/children", "NOTE", "nota");
+        mvc.perform(delete("/nodes/" + group)).andExpect(status().isConflict());
+        mvc.perform(delete("/nodes/" + child)).andExpect(status().isNoContent());
+        // o sugestie de stire are nodul ca parinte, dar nu blocheaza stergerea
+        relations.save(new Relation(nodes.findById(group).orElseThrow(), nodes.findById(lazarus()).orElseThrow(), RelationKind.SUGGESTED));
+        mvc.perform(delete("/nodes/" + group)).andExpect(status().isNoContent());
+        mvc.perform(get("/tree/groups")).andExpect(jsonPath("$[*].name", not(hasItem("Grupul meu"))));
+
+        mvc.perform(delete("/nodes/999999")).andExpect(status().isNotFound());
     }
 }
