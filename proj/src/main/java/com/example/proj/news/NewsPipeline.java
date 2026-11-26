@@ -9,8 +9,8 @@ import java.util.Optional;
 public class NewsPipeline {
     private final NewsHandler first;
 
-    NewsPipeline(DuplicateHandler duplicate, CategoryHandler category, SaveHandler save) {
-        duplicate.setNext(category).setNext(save);
+    NewsPipeline(DuplicateHandler duplicate, CategoryHandler category, MatchHandler match, SaveHandler save) {
+        duplicate.setNext(category).setNext(match).setNext(save);
         first = duplicate;
     }
 

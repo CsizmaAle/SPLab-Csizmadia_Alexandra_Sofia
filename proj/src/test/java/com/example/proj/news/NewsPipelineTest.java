@@ -95,4 +95,32 @@ class NewsPipelineTest {
         Article a = new Article(title, summary, "https://x/tag/" + title.hashCode(), Instant.now(), "");
         assertThat(pipeline.process(a).orElseThrow().getTag()).isEqualTo(tag);
     }
+
+    List<String> suggested(String title, String summary) {
+        Node n = pipeline.process(new Article(title, summary, "https://x/m/" + title.hashCode(), Instant.now(), "")).orElseThrow();
+        return relations.findByChildIdAndKind(n.getId(), RelationKind.SUGGESTED).stream().map(r -> r.getParent().getName()).toList();
+    }
+
+    @Test void suggestsMatchingNodes() {
+        Node n = pipeline.process(art("Lazarus Group ransomware attack", "https://x/3")).orElseThrow();
+        assertThat(relations.findByChildIdAndKind(n.getId(), RelationKind.SUGGESTED))
+            .extracting(r -> r.getParent().getName()).containsExactly("Lazarus Group");
+    }
+
+    @Test void matchesWholeWordsOnly() {
+        Node n = pipeline.process(art("Pinging servers with new tricks", "https://x/4")).orElseThrow();
+        assertThat(relations.findByChildIdAndKind(n.getId(), RelationKind.SUGGESTED)).isEmpty();
+    }
+
+    @Test void matchRules() {
+        nodes.save(new Node(NodeType.GROUP, "LAPSUS$", Source.MITRE));
+        nodes.save(new Node(NodeType.SOFTWARE, "Net", Source.MITRE));
+        assertThat(suggested("Ping sweep, then WannaCry", "")).containsExactlyInAnyOrder("Ping", "WannaCry");
+        assertThat(suggested("Quiet title", "Lazarus Group again")).containsExactly("Lazarus Group");
+        assertThat(suggested("lazarus group and wannacry", "")).isEmpty();
+        assertThat(suggested("LAPSUS$ leaks code", "")).containsExactly("LAPSUS$");
+        assertThat(suggested("Net income grows", "")).isEmpty();
+        assertThat(suggested("ReWannaCry clone spotted", "")).isEmpty(); // lipit in stanga
+        assertThat(suggested("Data Encrypted for Impact explained", "")).isEmpty(); // tehnicile nu se sugereaza
+    }
 }
