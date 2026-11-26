@@ -7,6 +7,8 @@ import com.example.proj.persistence.NodeRepository;
 import com.example.proj.persistence.RelationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,5 +74,25 @@ class NewsPipelineTest {
         long count = nodes.count();
         assertThat(pipeline.process(art("a again", "https://x/1"))).isEmpty();
         assertThat(nodes.count()).isEqualTo(count);
+    }
+
+    @ParameterizedTest @CsvSource({
+        "New RANSOMWARE strain, '', ransomware",
+        "CVE-2026-1234 patched, '', vulnerability",
+        "Weather today, '', other",
+        "Phishing kit sold, '', phishing",
+        "Chrome Vulnerability fixed, '', vulnerability",
+        "Zero-Day in routers, '', vulnerability",
+        "Retailer data breach, '', breach",
+        "Passwords leaked, '', breach",
+        "New malware family, '', malware",
+        "Banking trojan returns, '', malware",
+        "Backdoor in plugin, '', malware",
+        "Quiet title, 'a phishing campaign', phishing",
+        "Ransomware gang exploits CVE-2026-1, '', ransomware",
+        "Data leak via backdoor, '', breach"})
+    void tagsByKeywords(String title, String summary, String tag) {
+        Article a = new Article(title, summary, "https://x/tag/" + title.hashCode(), Instant.now(), "");
+        assertThat(pipeline.process(a).orElseThrow().getTag()).isEqualTo(tag);
     }
 }
