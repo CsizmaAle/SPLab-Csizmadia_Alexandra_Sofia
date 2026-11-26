@@ -12,7 +12,13 @@
   h1 { margin: 0; font-size: 20px; font-weight: 600; }
   h2 { margin: 0 0 8px; font-size: 16px; }
   h3 { margin: 0; font-size: 15px; }
-  #search { flex: 1; }
+  #search { flex: 1; display: flex; gap: 8px; max-width: 560px; }
+  #search input { flex: 1; }
+  #results { max-height: 35vh; overflow: auto; padding: 8px 20px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  #results p { display: flex; align-items: center; gap: 12px; margin: 0 0 4px; color: var(--muted); }
+  #results ul { display: flex; flex-wrap: wrap; gap: 2px 12px; margin: 0; padding: 0; list-style: none; }
+  #results .node { width: auto; }
+  #results p button { background: none; color: var(--accent); padding: 2px 6px; }
   #status { font-size: 14px; }
   #status.DONE { color: #8fe0b0; }
   #status.FAILED { color: #ffb4ab; }
@@ -59,10 +65,17 @@
 <body>
 <header>
   <h1>Cyber Awareness Hub</h1>
-  <div id="search"></div>
+  <form id="search" role="search">
+    <input type="search" name="q" required placeholder="Cauta grupari, malware, tehnici, notite" aria-label="Cauta">
+    <select name="type" aria-label="Tip">
+      <option value="">Toate</option><option value="GROUP">Grupari</option><option value="SOFTWARE">Software</option>
+      <option value="TECHNIQUE">Tehnici</option><option value="NEWS">Stiri</option><option value="NOTE">Notite</option>
+    </select>
+  </form>
   <span id="status" role="status"></span>
   <button id="import">Importa MITRE</button>
 </header>
+<div id="results" hidden></div>
 <main>
   <section id="tree">
     <h2>Arbore</h2>
@@ -207,6 +220,22 @@ async function summary(id) {
   box.replaceChildren(el('h3', { textContent: 'Summary' }),
     rows.length ? el('ul', {}, ...rows) : el('p', { className: 'empty', textContent: 'Nimic sub acest nod.' }));
 }
+
+$('search').onsubmit = async e => {
+  e.preventDefault();
+  const { q, type } = Object.fromEntries(new FormData(e.target));
+  say('', '');
+  const found = await api('/search?' + new URLSearchParams(type ? { q, type } : { q }));
+  const close = el('button', { textContent: 'Inchide', onclick: () => $('results').hidden = true });
+  $('results').replaceChildren(
+    el('p', {}, `${count(found.length, ['rezultat', 'rezultate'])} pentru "${q.trim()}"${found.length === 50 ? ' (primele 50)' : ''}`, close),
+    el('ul', {}, ...found.map(n => {
+      const b = el('button', { className: 'node ' + n.type, title: TYPES[n.type], textContent: n.name, onclick: () => select(n.id) });
+      b.dataset.id = n.id;
+      return el('li', {}, b);
+    })));
+  $('results').hidden = false;
+};
 
 $('newGroup').onsubmit = async e => {
   e.preventDefault();
