@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Odd feed</title>
+    <item>
+      <title>Fara link, se sare</title>
+      <description>x</description>
+    </item>
+    <item>
+      <title>Odd date</title>
+      <link>https://example.com/odd</link>
+      <pubDate>not a date</pubDate>
+      <description>&lt;b&gt;Bold&lt;/b&gt;&lt;br/&gt;line &amp;amp; more &amp;#8217;quoted&amp;#8217;</description>
+    </item>
+    <item>
+      <title>Long</title>
+      <link>https://example.com/long</link>
+      <pubDate>Wed, 5 Nov 2025 08:00:00 +0200</pubDate>
+      <description>word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word </description>
+    </item>
+  </channel>
+</rss>
