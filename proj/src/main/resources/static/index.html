@@ -42,6 +42,8 @@
   #details img { display: block; max-width: 100%; max-height: 320px; }
   .danger { background: #b3261e; }
   form { display: grid; gap: 8px; }
+  .summary { max-width: 75ch; margin: 16px 0; padding: 10px 16px; border-left: 4px solid var(--accent); background: var(--bg); }
+  .summary ul { margin: 4px 0 0; padding: 0; list-style: none; }
   .add { max-width: 75ch; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
   .add button { justify-self: start; }
   #newGroup { grid-template-columns: 1fr auto; margin-bottom: 12px; }
@@ -86,6 +88,10 @@
 const $ = id => document.getElementById(id);
 const el = (tag, props, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
 const TYPES = { GROUP: 'Grupare', SOFTWARE: 'Software', TECHNIQUE: 'Tehnica', TACTIC: 'Tactica', NEWS: 'Stire', NOTE: 'Notita', IMAGE: 'Imagine', IMPACT: 'Impact' };
+const NAMES = { GROUP: ['grupare', 'grupari'], SOFTWARE: ['software', 'software'], TECHNIQUE: ['tehnica', 'tehnici'], TACTIC: ['tactica', 'tactici'],
+  NEWS: ['stire', 'stiri'], NOTE: ['notita', 'notite'], IMAGE: ['imagine', 'imagini'], IMPACT: ['impact', 'impacturi'] };
+// "1 tehnica", "5 tehnici", "25 de tehnici", "105 tehnici"
+const count = (n, [one, many]) => n === 1 ? `1 ${one}` : `${n} ${n % 100 >= 20 || n >= 100 && n % 100 === 0 ? 'de ' : ''}${many}`;
 let view, selected;
 
 function say(text, status) {
@@ -124,6 +130,7 @@ $('import').onclick = () => track('/import/mitre', s => {
 
 async function loadTree(v) {
   view = v;
+  if (selected) summary(selected); // summary-ul depinde de vedere
   document.querySelectorAll('[data-view]').forEach(b => b.ariaPressed = b.dataset.view === v);
   const roots = await api('/tree/' + v);
   if (view !== v) return; // intre timp s-a ales alta vedere
@@ -168,6 +175,7 @@ async function select(id) {
     form.reset();
     say('Adaugat: ' + c.name, 'DONE');
     refresh(id);
+    summary(id);
   };
   const del = el('button', { className: 'danger', textContent: 'Sterge' });
   del.onclick = async () => {
@@ -184,8 +192,20 @@ async function select(id) {
     n.text ? el('p', { className: n.type === 'NOTE' ? 'sticky' : 'text', textContent: n.text }) : '',
     n.type === 'IMAGE' && web ? el('img', { src: n.url, alt: n.name }) : '',
     web ? el('p', {}, el('a', { href: n.url, target: '_blank', rel: 'noopener', textContent: n.url })) : '',
+    el('div', { className: 'summary' }),
     n.source === 'CUSTOM' ? del : '',
     form);
+  summary(id);
+}
+
+async function summary(id) {
+  const s = await api(`/nodes/${id}/summary?view=${view}`);
+  const box = document.querySelector('#details .summary');
+  if (selected !== id || !box) return;
+  const rows = Object.entries(s.counts).map(([t, n]) => el('li', { className: 'type ' + t, textContent: count(n, NAMES[t]) }));
+  if (s.impactTotal > 0) rows.push(el('li', { textContent: 'Impact total: ' + s.impactTotal.toLocaleString('ro-RO') }));
+  box.replaceChildren(el('h3', { textContent: 'Summary' }),
+    rows.length ? el('ul', {}, ...rows) : el('p', { className: 'empty', textContent: 'Nimic sub acest nod.' }));
 }
 
 $('newGroup').onsubmit = async e => {
