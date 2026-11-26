@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cyber Awareness Hub</title>
+<style>
+  :root { --bg: #eef1f4; --panel: #fff; --ink: #16283c; --muted: #55677a; --line: #cbd5df; --accent: #0b5c7a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); font: 15px/1.5 "Avenir Next", "Segoe UI", system-ui, sans-serif; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 20px; background: var(--ink); color: #fff; }
+  h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  h2 { margin: 0 0 8px; font-size: 16px; }
+  #search { flex: 1; }
+  #status { font-size: 14px; }
+  #status.DONE { color: #8fe0b0; }
+  #status.FAILED { color: #ffb4ab; }
+  button { padding: 6px 14px; border: 0; border-radius: 4px; background: var(--accent); color: #fff; font: inherit; cursor: pointer; }
+  header button { background: #fff; color: var(--ink); }
+  button:disabled { opacity: .5; cursor: default; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 3px solid #e39b24; outline-offset: 2px; }
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr) minmax(240px, 1fr); }
+  section { padding: 16px 20px; overflow: auto; overflow-wrap: anywhere; }
+  #details { background: var(--panel); border: solid var(--line); border-width: 0 1px; }
+  .empty, .meta { color: var(--muted); }
+  .views button { background: none; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+  .views button[aria-pressed=true] { background: var(--ink); color: #fff; }
+  #tree ul { margin: 0; padding: 0; list-style: none; }
+  #tree ul ul { padding-left: 16px; }
+  .node { display: flex; align-items: baseline; gap: 8px; width: 100%; padding: 3px 6px; background: none; color: inherit; text-align: left; }
+  .node:hover { background: #dfe6ec; }
+  .node.selected { background: #d3dfe8; font-weight: 600; }
+  .node::before, .type::before { content: ""; flex: none; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--type); }
+  .type::before { margin-right: 6px; }
+  .GROUP { --type: #b3261e; } .SOFTWARE { --type: #d97a00; } .TECHNIQUE { --type: #0b7fab; } .TACTIC { --type: #5a3e9b; }
+  .NEWS { --type: #1e7a46; } .NOTE { --type: #e0b400; } .IMAGE { --type: #c2558f; } .IMPACT { --type: #16283c; }
+  .text { max-width: 75ch; white-space: pre-line; }
+  @media (max-width: 800px) {
+    body { height: auto; }
+    main { grid-template-columns: 1fr; }
+    #details { border-width: 1px 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Cyber Awareness Hub</h1>
+  <div id="search"></div>
+  <span id="status" role="status"></span>
+  <button id="import">Importa MITRE</button>
+</header>
+<main>
+  <section id="tree">
+    <h2>Arbore</h2>
+    <p class="views"><button data-view="groups">Grupari</button> <button data-view="tactics">Tactici</button></p>
+    <ul id="roots"></ul>
+  </section>
+  <section id="details"><h2>Detalii</h2><p class="empty">Alege un nod din arbore.</p></section>
+  <section id="news"><h2>Stiri</h2><p class="empty">Nicio stire inca.</p></section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const el = (tag, props, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
+const TYPES = { GROUP: 'Grupare', SOFTWARE: 'Software', TECHNIQUE: 'Tehnica', TACTIC: 'Tactica', NEWS: 'Stire', NOTE: 'Notita', IMAGE: 'Imagine', IMPACT: 'Impact' };
+let view, selected;
+
+function say(text, status) {
+  $('status').className = status;
+  $('status').textContent = text;
+}
+addEventListener('unhandledrejection', e => say('Eroare: ' + e.reason.message, 'FAILED'));
+
+async function api(url, method = 'GET') {
+  const r = await fetch(url, { method });
+  if (!r.ok) throw new Error(`${url}: ${r.status}`);
+  return r.json();
+}
+
+// porneste o comanda asincrona si asteapta pana nu mai e PENDING
+async function track(url, show) {
+  try {
+    show({ status: 'PENDING' });
+    const { requestId } = await api(url, 'POST');
+    let s;
+    while ((s = await api('/requests/' + requestId)).status === 'PENDING') await new Promise(r => setTimeout(r, 1000));
+    show(s);
+  } catch (e) { show({ status: 'FAILED', error: e.message }); }
+}
+
+$('import').onclick = () => track('/import/mitre', s => {
+  $('import').disabled = s.status === 'PENDING';
+  say({ PENDING: 'Se importa MITRE...', FAILED: 'Import esuat: ' + s.error,
+    DONE: `Import gata: ${s.result?.nodes} noduri, ${s.result?.relations} relatii` }[s.status], s.status);
+  if (s.status === 'DONE') loadTree(view);
+});
+
+async function loadTree(v) {
+  view = v;
+  document.querySelectorAll('[data-view]').forEach(b => b.ariaPressed = b.dataset.view === v);
+  const roots = await api('/tree/' + v);
+  if (view !== v) return; // intre timp s-a ales alta vedere
+  $('roots').replaceChildren(...roots.length ? roots.map(item) : [el('li', { className: 'empty', textContent: 'Arborele apare aici dupa import.' })]);
+}
+
+function item(n) {
+  const button = el('button', { className: 'node ' + n.type, title: TYPES[n.type], textContent: n.name, ariaExpanded: false });
+  const li = el('li', {}, button);
+  button.dataset.id = n.id;
+  button.onclick = async () => {
+    select(n.id);
+    const open = li.querySelector('ul');
+    button.ariaExpanded = !open;
+    if (open) return open.remove();
+    const ul = li.appendChild(el('ul'));
+    ul.append(...(await api(`/tree/${view}/${n.id}/children`)).map(item));
+  };
+  return li;
+}
+
+async function select(id) {
+  selected = id;
+  document.querySelectorAll('.node').forEach(b => b.classList.toggle('selected', b.dataset.id == id));
+  const n = await api('/nodes/' + id);
+  if (selected !== id) return; // intre timp s-a ales alt nod
+  $('details').replaceChildren(
+    el('h2', { textContent: n.name }),
+    el('p', { className: 'meta' }, el('span', { className: 'type ' + n.type, textContent: TYPES[n.type] }), `${n.externalId ? ' ' + n.externalId : ''}, sursa ${n.source}`),
+    el('p', { className: 'text', textContent: n.text ?? '' }),
+    // doar http(s), ca un url javascript: sa nu fie clicabil
+    /^https?:/i.test(n.url) ? el('a', { href: n.url, target: '_blank', rel: 'noopener', textContent: n.url }) : '');
+}
+
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => loadTree(b.dataset.view));
+loadTree('groups');
+</script>
+</body>
+</html>
