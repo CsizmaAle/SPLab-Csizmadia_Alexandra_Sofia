@@ -23,4 +23,16 @@ class TreeControllerTest extends ApiTest {
         long id = nodes.findByExternalId("G0032").orElseThrow().getId();
         mvc.perform(get(url.replace("{id}", "" + id))).andExpect(status().isNotFound());
     }
+
+    @Test void summaryEndpoint() throws Exception {
+        long id = nodes.findByExternalId("G0032").orElseThrow().getId();
+        mvc.perform(get("/nodes/" + id + "/summary")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.name").value("Lazarus Group")).andExpect(jsonPath("$.nodeId").value(id))
+            .andExpect(jsonPath("$.counts.SOFTWARE").value(1)).andExpect(jsonPath("$.counts.TECHNIQUE").value(1))
+            .andExpect(jsonPath("$.impactTotal").value(0.0));
+        long execution = nodes.findByExternalId("TA0002").orElseThrow().getId();
+        mvc.perform(get("/nodes/" + execution + "/summary?view=tactics")).andExpect(jsonPath("$.counts.TECHNIQUE").value(2));
+        mvc.perform(get("/nodes/" + id + "/summary?view=nope")).andExpect(status().isNotFound());
+        mvc.perform(get("/nodes/999999/summary")).andExpect(status().isNotFound());
+    }
 }
