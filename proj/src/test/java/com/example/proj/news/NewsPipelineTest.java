@@ -66,4 +66,11 @@ class NewsPipelineTest {
         assertThat(pipeline.process(art("t".repeat(300), "https://x/long-title")).orElseThrow().getName()).hasSize(255);
         assertThat(pipeline.process(art("url lung", "https://x/" + "u".repeat(300)))).isEmpty();
     }
+
+    @Test void skipsDuplicates() {
+        assertThat(pipeline.process(art("a", "https://x/1"))).isPresent();
+        long count = nodes.count();
+        assertThat(pipeline.process(art("a again", "https://x/1"))).isEmpty();
+        assertThat(nodes.count()).isEqualTo(count);
+    }
 }

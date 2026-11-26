@@ -9,7 +9,10 @@ import java.util.Optional;
 public class NewsPipeline {
     private final NewsHandler first;
 
-    NewsPipeline(SaveHandler save) { first = save; }
+    NewsPipeline(DuplicateHandler duplicate, SaveHandler save) {
+        duplicate.setNext(save);
+        first = duplicate;
+    }
 
     @Transactional
     public Optional<Node> process(Article a) {
