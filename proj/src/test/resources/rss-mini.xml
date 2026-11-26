@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Mini feed</title>
+    <link>https://example.com</link>
+    <description>Feed de test</description>
+    <item>
+      <title>Lazarus Group hits crypto exchange</title>
+      <link>https://example.com/1</link>
+      <description><![CDATA[<p>The North Korean group used new malware.</p>]]></description>
+      <content:encoded><![CDATA[<p>Full article: the North Korean group used new malware against a crypto exchange.</p>]]></content:encoded>
+      <pubDate>Wed, 25 Nov 2026 10:30:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Pinging servers: new PowerShell tricks</title>
+      <link>https://example.com/2</link>
+      <description>Attackers abuse PowerShell to ping internal servers.</description>
+    </item>
+  </channel>
+</rss>
