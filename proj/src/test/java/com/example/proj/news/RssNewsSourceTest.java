@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RssNewsSourceTest {
     String res(String f) { return getClass().getResource(f).toString(); }
@@ -30,5 +31,14 @@ class RssNewsSourceTest {
         assertThat(a.getFirst().summary()).isEqualTo("Bold line & more ’quoted’");
         assertThat(a.get(1).publishedAt()).isEqualTo(Instant.parse("2025-11-05T06:00:00Z"));
         assertThat(a.get(1).summary()).hasSize(1000);
+    }
+
+    // XXE: entitatea externa ar citi /etc/passwd in titlu
+    @Test void rejectsDoctype() {
+        assertThatThrownBy(() -> new RssNewsSource(res("/rss-xxe.xml")).fetch()).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test void rejectsDoctypeEvenWithoutExternalEntities() {
+        assertThatThrownBy(() -> new RssNewsSource(res("/rss-entity.xml")).fetch()).isInstanceOf(RuntimeException.class);
     }
 }

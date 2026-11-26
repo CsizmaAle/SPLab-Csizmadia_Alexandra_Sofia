@@ -4,6 +4,7 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.web.util.HtmlUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.InputStream;
 import java.time.Instant;
@@ -22,6 +23,9 @@ public record RssNewsSource(String url) implements NewsSource {
         try (InputStream in = new DefaultResourceLoader().getResource(url).getInputStream()) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
+            // protectie XXE: fara DOCTYPE si fara DTD-uri sau entitati externe
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             NodeList items = factory.newDocumentBuilder().parse(in).getElementsByTagName("item");
             return IntStream.range(0, items.getLength()).mapToObj(i -> article((Element) items.item(i)))
                 .filter(a -> a.title() != null && a.url() != null).toList();
